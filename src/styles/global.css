@@ -1,0 +1,160 @@
+/* src/styles/global.css */
+/* Ce fichier contient toutes les règles de style globales de votre application, y compris la palette de couleurs et les styles de grille/cartes. */
+
+/* eslint-disable */
+
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+                Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', sans-serif;
+  line-height: 1.6;
+  font-weight: 400;
+
+  /* Couleurs de base pour le texte et le fond */
+  color: #2A3F2A; /* Texte vert foncé par défaut */
+  background-color: #F9F9F7; /* Fond crème par défaut */
+
+  /* Variables de votre palette de couleurs */
+  --primary-dark: #537D5D;
+  --primary-medium: #73946B;
+  --primary-light: #9EBC8A;
+  --secondary: #D2D0A0;
+  --text-dark: #2A3F2A;
+  --background-light: #F9F9F7;
+}
+
+a {
+  font-weight: 500;
+  color: var(--primary-dark);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+a:hover {
+  color: var(--primary-medium);
+  text-decoration: underline;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--background-light);
+}
+
+h1 {
+  font-size: 2.5em;
+  line-height: 1.2;
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+button {
+  border-radius: 6px;
+  border: 1px solid var(--primary-medium);
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--primary-dark);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+button:hover {
+  background-color: var(--primary-medium);
+}
+button:focus-visible {
+  outline: 3px solid var(--primary-light);
+}
+
+/* Classes utilitaires */
+.text-primary { color: var(--primary-dark); }
+.bg-primary { background-color: var(--primary-dark); }
+.border-primary { border-color: var(--primary-medium); }
+
+/* NOUVEAUX STYLES POUR LA GRILLE ET LES CARTES */
+
+/* Conteneur principal pour le contenu de la page, limite la largeur et centre */
+.main-content-container {
+  max-width: 1200px; /* Largeur maximale de la grille. Ajustez cette valeur si vous le souhaitez. */
+  margin: 0 auto; /* Centre le conteneur sur la page */
+  padding: 1rem; /* Espacement interne */
+}
+
+/* Conteneur de la grille des livres */
+.book-grid {
+  display: grid;
+  /* Définit une grille réactive:
+     - auto-fill: remplit la ligne avec autant de colonnes que possible.
+     - minmax(250px, 1fr): chaque colonne aura une largeur minimale de 250px,
+       et une largeur maximale qui prendra une fraction égale de l'espace disponible.
+       Cela permet 4 cartes par ligne sur les grands écrans (4 * 250px = 1000px, plus les espacements).
+       Ajustez '250px' si vous voulez des cartes plus larges/étroites.
+  */
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 24px; /* Espacement entre les cartes (gouttière) */
+  justify-content: center; /* Centre les éléments de la grille si la dernière ligne n'est pas complète */
+  padding: 24px 0; /* Espacement vertical autour de la grille */
+}
+
+/* Style d'une carte de livre individuelle */
+.book-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  background-color: white; /* Fond blanc pour la carte */
+  overflow: hidden; /* Assure que les coins arrondis s'appliquent à l'image */
+  min-height: 380px; /* Hauteur minimale fixe pour toutes les cartes */
+  width: 100%; /* La carte prend 100% de la largeur de sa cellule de grille */
+  /* La largeur maximale est gérée par minmax() dans .book-grid,
+     mais vous pouvez ajouter un max-width ici si vous voulez une limite plus stricte
+     indépendamment de la grille, par ex: max-width: 300px; */
+}
+
+.book-card:hover {
+  transform: translateY(-5px); /* Effet de soulèvement au survol */
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2); /* Ombre plus prononcée au survol */
+}
+
+/* Style de l'image de la carte */
+.book-card-media {
+  width: 100%;
+  height: 280px; /* Hauteur fixe pour l'image */
+  object-fit: contain; /* CHANGEMENT ICI : L'image est contenue dans la zone, sans être coupée */
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+/* Style du contenu textuel de la carte */
+.book-card-content {
+  padding: 16px; /* Espacement interne */
+  flex-grow: 1; /* Permet au contenu de prendre l'espace restant */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Aide à espacer le titre/auteur si besoin */
+}
+
+/* Styles pour le titre et l'auteur */
+.book-card-title {
+  font-size: 1.25rem; /* Taille de police pour le titre */
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+  line-height: 1.4; /* Hauteur de ligne pour le titre */
+  /* NOUVEAU: Troncature sur deux lignes */
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Limite à 2 lignes */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Affiche "..." si le texte est coupé après 2 lignes */
+}
+
+.book-card-author {
+  font-size: 0.875rem; /* Taille de police pour l'auteur */
+  color: var(--primary-medium);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

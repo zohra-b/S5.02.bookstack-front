@@ -1,0 +1,67 @@
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, 
+               Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', sans-serif;
+  line-height: 1.6;
+  font-weight: 400;
+
+  /* Couleurs light */
+  color: #2A3F2A; /* Texte vert foncé */
+  background-color: #F9F9F7; /* Fond crème */
+
+  /* Variables de votre palette */
+  --primary-dark: #537D5D;
+  --primary-medium: #73946B;
+  --primary-light: #9EBC8A;
+  --secondary: #D2D0A0;
+  --text-dark: #2A3F2A;
+  --background-light: #F9F9F7;
+}
+
+a {
+  font-weight: 500;
+  color: var(--primary-dark);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+a:hover {
+  color: var(--primary-medium);
+  text-decoration: underline;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--background-light);
+}
+
+h1 {
+  font-size: 2.5em;
+  line-height: 1.2;
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+button {
+  border-radius: 6px;
+  border: 1px solid var(--primary-medium);
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--primary-dark);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+button:hover {
+  background-color: var(--primary-medium);
+}
+button:focus-visible {
+  outline: 3px solid var(--primary-light);
+}
+
+/* Classes utilitaires */
+.text-primary { color: var(--primary-dark); }
+.bg-primary { background-color: var(--primary-dark); }
+.border-primary { border-color: var(--primary-medium); }
