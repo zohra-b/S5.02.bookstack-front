@@ -1,49 +1,96 @@
-
+// src/components/BookCard.tsx
 import React from 'react';
+import { Card, CardContent, CardMedia, Typography, Box } from '@mui/material';
 
-// Définition de l'interface pour les données d'un livre, correspondant à BookCardDto du backend
-interface BookCardData {
+// Interface pour BookSummaryDto (doit correspondre à celle définie dans MyBooksPage.tsx et App.tsx)
+interface BookSummaryDto {
   bookId: number;
   title: string;
   author: string;
   imageUrl: string | null;
 }
 
-// Définition des props que le composant BookCard peut recevoir
+// L'interface des props de BookCard attend un objet 'book' de type BookSummaryDto
 interface BookCardProps {
-  book: BookCardData; // Le livre à afficher dans cette carte
-  // Vous pourriez ajouter d'autres props ici, par exemple, pour un clic sur la carte
-  // onClick?: (bookId: number) => void;
+  book: BookSummaryDto; // Le composant attend maintenant un objet 'book'
 }
 
 const BookCard: React.FC<BookCardProps> = ({ book }) => {
-  // Fonction de gestion d'erreur pour l'image
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    // Ce code s'exécute si l'image ne peut pas être chargée (URL cassée, problème CORS, etc.)
-    (e.target as HTMLImageElement).src = `https://placehold.co/150x200/D2D0A0/2A3F2A?text=Image+Not+Available`; // Texte placeholder en anglais
-    console.error(`Image loading error for book "${book.title}". URL: ${book.imageUrl}`); // Message de console en anglais
-  };
+  // Utilise les propriétés de l'objet 'book'
+  const { bookId, title, author, imageUrl } = book;
 
-  // Ajout d'un console.log pour vérifier l'URL de l'image (pour le débogage)
-  console.log(`Image URL for book "${book.title}":`, book.imageUrl);
+  // Utilise le même placeholder que votre ancienne version
+  const placeholderImage = `https://placehold.co/200x300/D2D0A0/2A3F2A?text=Image+Not+Available`;
 
   return (
-    <div className="book-card" key={book.bookId}>
-      <img
-        className="book-card-media"
-        src={book.imageUrl || `https://placehold.co/150x200/D2D0A0/2A3F2A?text=Image+Not+Available`}
-        alt={book.title}
-        onError={handleImageError} // Utilise la fonction de gestion d'erreur définie ci-dessus
+    <Card
+      sx={{
+        width: 250, // MODIFIÉ: Largeur fixe de 250px
+        // SUPPRIMÉ: maxWidth: 250, // Supprimé car la largeur est maintenant fixe
+        margin: 'auto', // Centrage horizontal si le parent est plus large que la carte
+        borderRadius: '12px',
+        boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+        transition: 'transform 0.2s ease-in-out',
+        '&:hover': {
+          transform: 'translateY(-5px)',
+          boxShadow: '0 6px 12px rgba(0,0,0,0.15)',
+        },
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%', // Assure que toutes les cartes ont la même hauteur dans une grille
+      }}
+    >
+      <CardMedia
+        component="img"
+        height="300" // Hauteur fixe pour l'image
+        image={imageUrl || placeholderImage}
+        alt={title}
+        sx={{
+          objectFit: 'contain',
+          borderTopLeftRadius: '12px',
+          borderTopRightRadius: '12px',
+          width: '100%', // L'image prend 100% de la largeur de la carte (qui est maintenant fixe à 250px)
+        }}
+        onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+          e.currentTarget.onerror = null; // Empêche les boucles infinies
+          e.currentTarget.src = placeholderImage; // Affiche l'image de substitution en cas d'erreur
+        }}
       />
-      <div className="book-card-content">
-        <h3 className="book-card-title">
-          {book.title}
-        </h3>
-        <p className="book-card-author">
-          {book.author}
-        </p>
-      </div>
-    </div>
+      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <Box>
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{
+              fontWeight: 'bold',
+              color: 'var(--primary-dark)',
+              mb: 1,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: '-webkit-box',
+              WebkitLineClamp: 2, // Limite le titre à 2 lignes
+              WebkitBoxOrient: 'vertical',
+            }}
+          >
+            {title}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ color: 'var(--text-medium)' }}>
+            {author}
+          </Typography>
+        </Box>
+        {/* Vous pouvez ajouter ici des informations supplémentaires de UserBookDto comme status, rating, comment */}
+        {/* Par exemple:
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="body2" sx={{ color: 'var(--text-dark)' }}>
+            Status: {book.status}
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'var(--text-dark)' }}>
+            Rating: {book.rating} / 5
+          </Typography>
+        </Box>
+        */}
+      </CardContent>
+    </Card>
   );
 };
 
