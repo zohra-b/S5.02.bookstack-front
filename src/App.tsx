@@ -14,24 +14,13 @@ import RegisterPage from './pages/RegisterPage';
 import UserManagementPage from './pages/UserManagementPage';
 import UserEditPage from './pages/UserEditPage';
 import MyBooksPage from './pages/MyBooksPage';
-import HomeContent from './HomeContent'; // MODIFIÉ: Importation de HomeContent depuis son propre fichier
+import HomeContent from './HomeContent'; 
+import BookManagementPage from './pages/BookManagementPage'; 
+import AddBookPage from './pages/AddBookPage';
 
-// Importation des composants Material-UI pour les éléments génériques
-// Note: Typography, CircularProgress, Alert sont déjà importés dans HomeContent si c'est un fichier séparé
-// et ne sont plus nécessaires ici si App.tsx ne les utilise pas directement en dehors de HomeContent.
-// Je les laisse pour l'instant au cas où d'autres parties de App.tsx les utiliseraient.
+
 import { Typography, CircularProgress, Alert } from '@mui/material';
 
-
-// SUPPRIMÉ: La définition de l'interface BookCardData et du composant HomeContent
-// car ils seront maintenant importés depuis './HomeContent'.
-// interface BookCardData {
-//   bookId: number;
-//   title: string;
-//   author: string;
-//   imageUrl: string | null;
-// }
-// const HomeContent: React.FC = () => { /* ... */ };
 
 
 // Composant App: Gère la structure globale de l'application et le routage.
@@ -173,10 +162,10 @@ function App() {
         onLogout={handleLogout}
         onUserManagementClick={handleUserManagementClick}
         onMyBooksClick={handleMyBooksClick}
+        onAddBookClick={() => navigate('/books/new')} // NOUVEAU: Ajout de la fonction pour ajouter un livre
       />
 
-      <Routes>
-        {/* MODIFIÉ: Utilise le composant HomeContent importé */}
+     <Routes>
         <Route path="/" element={<HomeContent />} />
         <Route
           path="/register"
@@ -193,6 +182,19 @@ function App() {
         <Route
           path="/my-books/:userId"
           element={<MyBooksPage />}
+        />
+        <Route
+          path="/admin/books"
+          element={<BookManagementPage />}
+        />
+        <Route
+          path="/admin/books/edit/:bookId"
+          element={<Typography variant="h5" sx={{ textAlign: 'center', mt: 4 }}>Book Edit Page (Coming Soon!)</Typography>} // Placeholder
+        />
+  
+        <Route
+          path="/books/new"
+          element={<AddBookPage />}
         />
       </Routes>
 

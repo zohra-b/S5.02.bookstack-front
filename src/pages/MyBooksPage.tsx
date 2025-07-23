@@ -1,4 +1,3 @@
-// src/pages/MyBooksPage.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -6,21 +5,24 @@ import {
   CircularProgress,
   Alert,
   Box,
-  Grid, // Pour la mise en page des cartes de livres
-} from '@mui/material';
+  Grid, 
+  TextField,
+  InputAdornment, 
+  IconButton
 
-// Importation du composant BookCard (assurez-vous que son chemin est correct)
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search'; 
+//import { useAuth } from '../hooks/useAuth';
+
 import BookCard from '../components/BookCard';
 
-// NOUVEAU: Interface pour UserSummaryDto (basé sur le DTO de votre backend)
+
 interface UserSummaryDto {
   userId: number;
   userName: string;
   email: string;
 }
 
-// NOUVEAU: Interface pour BookSummaryDto (basé sur le DTO de votre backend)
-// C'est l'équivalent de BookCardData que vous utilisez ailleurs pour les props de BookCard
 interface BookSummaryDto {
   bookId: number;
   title: string;
@@ -28,35 +30,49 @@ interface BookSummaryDto {
   imageUrl: string | null;
 }
 
-// MODIFIÉ: Interface pour les données d'une carte de livre (doit correspondre à votre UserBookDto du backend)
+
 interface UserBookDto {
-  id: number; // L'ID de l'UserBook (pas l'ID du livre)
-  user: UserSummaryDto; // L'utilisateur associé à cette entrée UserBook
-  book: BookSummaryDto; // Le livre associé à cette entrée UserBook
-  status: string; // Ex: "READ", "READING", "TO_READ" - Assurez-vous que le type correspond à votre enum BookStatus
-  rating: number; // La note du livre par l'utilisateur
-  comment: string; // Le commentaire de l'utilisateur sur le livre
+  id: number;
+  user: UserSummaryDto; 
+  book: BookSummaryDto; 
+  status: string; 
+  rating: number; 
+  comment: string; 
 }
 
 const MyBooksPage: React.FC = () => {
   // Récupère l'ID de l'utilisateur depuis les paramètres de l'URL
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+  //const { handleLogout } = useAuth()
+
+  const handleLogout = useCallback((message?: string) => {
+    console.log("Logout triggered by MybooksPage (local):", message || "No specific message.");
+    localStorage.removeItem('jwtToken');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userId');
+    if (message) {
+      alert(message);
+    }
+    navigate('/login', { state: { message: message || "You have been logged out." } });
+  }, [navigate]);
 
   const [books, setBooks] = useState<UserBookDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   // Récupère le rôle et l'ID de l'utilisateur connecté pour l'autorisation
   const currentUserRole = localStorage.getItem('userRole');
   const currentLoggedInUserId = localStorage.getItem('userId');
   const isCurrentUserAdmin = currentUserRole === 'ROLE_ADMIN';
 
-  // Vérifie si l'utilisateur connecté est autorisé à voir cette page
-  // Un admin peut voir les livres de n'importe qui, un utilisateur normal ne peut voir que les siens
+  
   const isAuthorized = isCurrentUserAdmin || (currentLoggedInUserId === userId);
 
-  const fetchUserBooks = useCallback(async () => {
+
+  
+  const fetchUserBooks = useCallback(async (keyword: string) => {
     if (!userId) {
       setError("User ID is missing.");
       setLoading(false);
@@ -69,6 +85,8 @@ const MyBooksPage: React.FC = () => {
       return;
     }
 
+
+
     setLoading(true);
     setError(null);
     try {
@@ -79,8 +97,16 @@ const MyBooksPage: React.FC = () => {
         return;
       }
 
+       let apiUrl = `http://localhost:8080/api/user-books/by-user/${userId}`;;
+      if (keyword) {
+         //@GetMapping("/by-user/{userId}/search")
+        // public ResponseEntity<List<UserBookDto>> searchUserBooksByUserIdAndKeyword(@PathVariable Long userId, @RequestParam String keyword) { ... }
+       
+       apiUrl = `http://localhost:8080/api/user-books/by-user/${userId}/search?keyword=${encodeURIComponent(keyword)}`;
+      }
+
       // Appel à l'API pour récupérer la liste des livres de l'utilisateur
-      const response = await fetch(`http://localhost:8080/api/users/${userId}/books`, {
+      const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -88,6 +114,10 @@ const MyBooksPage: React.FC = () => {
         },
       });
 
+      if (response.status === 401) { // NOUVEAU: Gère l'expiration du token
+        handleLogout("Your session has expired. Please login.");
+        return;
+      }
       if (!response.ok) {
         const errorText = await response.text();
         let parsedError = `HTTP Error: ${response.status} - ${response.statusText}`;
@@ -108,14 +138,28 @@ const MyBooksPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [userId, isAuthorized]); // Dépend de userId et isAuthorized
+  }, [userId, isAuthorized, handleLogout]); // Dépend de userId et isAuthorized
 
   useEffect(() => {
-    fetchUserBooks();
+    fetchUserBooks('');
   }, [fetchUserBooks]); // S'exécute quand fetchUserBooks change (donc quand userId ou isAuthorized change)
 
+useEffect(() => {
+    // Définit un délai avant d'appeler la fonction de recherche
+    const handler = setTimeout(() => {
+      if (isAuthorized) { // S'assure que l'utilisateur est autorisé avant de lancer la recherche
+        fetchUserBooks(searchTerm); // Appelle la recherche avec le terme actuel
+      }
+    }, 300); // Délai de 300ms (vous pouvez ajuster cette valeur)
 
+    // Fonction de nettoyage: si searchTerm change avant la fin du délai,
+    // le timeout précédent est annulé pour éviter des appels API inutiles.
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm, fetchUserBooks, isAuthorized]); 
   // Redirection ou message d'accès refusé si l'utilisateur n'est pas autorisé
+
   if (!isAuthorized) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 64px)', p: 3 }}>
@@ -124,14 +168,6 @@ const MyBooksPage: React.FC = () => {
     );
   }
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 64px)' }}>
-        <CircularProgress sx={{ color: 'var(--primary-dark)' }} />
-        <Typography sx={{ ml: 1, color: 'var(--text-dark)' }}>Loading your books...</Typography>
-      </Box>
-    );
-  }
 
   if (error) {
     return (
@@ -147,22 +183,56 @@ const MyBooksPage: React.FC = () => {
         My Books
       </Typography>
 
-      {books.length === 0 && (
-        <Typography variant="h6" sx={{ textAlign: 'center', mt: 4, color: 'var(--text-dark)' }}>
-          You don't have any books in your collection yet.
-        </Typography>
-      )}
+ <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+        <TextField
+          label="Search My Books"
+          variant="outlined"
+          fullWidth
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)} // Met à jour searchTerm à chaque frappe
+          onKeyPress={(e) => {
+            if (e.key === 'Enter') {
+              fetchUserBooks(searchTerm); // Déclenche la recherche immédiatement avec Entrée
+            }
+          }}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={() => fetchUserBooks(searchTerm)} edge="end" disabled={loading}>
+                  <SearchIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+          sx={{ maxWidth: 600, '& .MuiOutlinedInput-root': { borderRadius: '8px', backgroundColor: 'var(--background-light)' } }}
+          disabled={loading}
+        />
+      </Box>
 
-      {books.length > 0 && (
-        <Grid container spacing={4} justifyContent="center">
-          {books.map((userBook) => ( // MODIFIÉ: Renommé 'book' en 'userBook' pour la clarté
-            <Grid item key={userBook.id} xs={12} sm={6} md={4} lg={3}> {/* MODIFIÉ: Utilise userBook.id comme clé */}
-              {/* MODIFIÉ: Passe userBook.book au composant BookCard */}
-              <BookCard book={userBook.book} />
-            </Grid>
-          ))}
-        </Grid>
-      )}
+      {loading && (
+  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 4 }}>
+    <CircularProgress sx={{ color: 'var(--primary-dark)' }} />
+    <Typography sx={{ ml: 1, color: 'var(--text-dark)' }}>Loading your books...</Typography>
+  </Box>
+)}
+
+
+
+      {!loading && books.length === 0 && (
+  <Typography variant="h6" sx={{ textAlign: 'center', mt: 4, color: 'var(--text-dark)' }}>
+    You don't have any books in your collection yet.
+  </Typography>
+)}
+
+      {!loading && books.length > 0 && (
+  <Grid container spacing={4} justifyContent="center" sx={{ minHeight: '400px' }}>
+    {books.map((userBook) => (
+      <Grid item key={userBook.id} xs={12} sm={6} md={4} lg={3}>
+        <BookCard book={userBook.book} />
+      </Grid>
+    ))}
+  </Grid>
+)}
     </Box>
   );
 };
