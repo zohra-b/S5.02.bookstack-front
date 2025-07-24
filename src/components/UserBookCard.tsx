@@ -21,8 +21,23 @@ const UserBookCard: React.FC<UserBookCardProps> = ({ userBook }) => {
     navigate(`/my-books/entry/${id}`); // NEW: Navigate to the specific user book entry page
   };
 
-  // Use the same placeholder as your old version
-  const placeholderImage = `https://placehold.co/200x300/D2D0A0/2A3F2A?text=Image+Not+Available`;
+   // Define placeholder image logic here, after book properties are destructured
+  const maxTitleLength = 25; // Maximum characters for title before truncating
+  const maxAuthorLength = 20; // Maximum characters for author before truncating
+
+  const truncatedTitle = title && title.length > maxTitleLength
+    ? title.substring(0, maxTitleLength) + '...'
+    : title || 'No Title';
+
+  // MODIFIÉ: Si l'auteur est vide ou null, on utilise un texte vide pour le placeholder,
+  // pour éviter "Unknown Author" dans le placeholder lui-même si on veut le cacher.
+  const truncatedAuthorForPlaceholder = author && author.length > maxAuthorLength
+    ? author.substring(0, maxAuthorLength) + '...'
+    : author || ''; // Utilise une chaîne vide si l'auteur est null/vide
+
+  // Le texte du placeholder inclura l'auteur seulement s'il est présent
+  const placeholderText = `${encodeURIComponent(truncatedTitle)}${truncatedAuthorForPlaceholder ? '%0Aby%20' + encodeURIComponent(truncatedAuthorForPlaceholder) : ''}`;
+  const placeholderImage = `https://placehold.co/200x300/D2D0A0/2A3F2A?text=${placeholderText}`;
 
   // Function to format the enum status to readable text
   const formatStatus = (rawStatus: string): string => {
@@ -36,6 +51,7 @@ const UserBookCard: React.FC<UserBookCardProps> = ({ userBook }) => {
       default: return rawStatus;
     }
   };
+  
 
   return (
     <Card

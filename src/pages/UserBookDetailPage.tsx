@@ -47,7 +47,7 @@ const UserBookDetailPage: React.FC = () => {
 
   const currentLoggedInUserId = localStorage.getItem('userId'); // Used for authorization check
 
-  const placeholderImage = `https://placehold.co/300x450/D2D0A0/2A3F2A?text=Image+Not+Available`;
+  //const placeholderImage = `https://placehold.co/300x450/D2D0A0/2A3F2A?text=Image+Not+Available`;
 
   // Function to format the enum status to readable text
   const formatStatus = (rawStatus: string): string => {
@@ -198,6 +198,19 @@ const UserBookDetailPage: React.FC = () => {
     );
   }
 
+  const maxTitleLength = 28; // Maximum characters for title before truncating
+  const maxAuthorLength = 20; // Maximum characters for author before truncating
+
+  const truncatedTitle = userBook.book.title && userBook.book.title.length > maxTitleLength
+    ? userBook.book.title.substring(0, maxTitleLength) + '...'
+    : userBook.book.title || 'No Title';
+
+  const truncatedAuthor = userBook.book.author && userBook.book.author.length > maxAuthorLength
+    ? userBook.book.author.substring(0, maxAuthorLength) + '...'
+    : userBook.book.author || 'Unknown Author';
+      const placeholderImage = `https://placehold.co/300x450/D2D0A0/2A3F2A?text=${encodeURIComponent(truncatedTitle)}%0Aby%20${encodeURIComponent(truncatedAuthor)}`;
+
+
   return (
     <Box sx={{ maxWidth: 900, margin: '20px auto', padding: '20px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
       <Card sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, boxShadow: 'none' }}>
@@ -271,11 +284,7 @@ const UserBookDetailPage: React.FC = () => {
                 </Typography>
               </Box>
             )}
-            {userBook.comment && (
-              <Typography variant="body1" sx={{ fontStyle: 'italic' }}>
-                Your Comment: "{userBook.comment}"
-              </Typography>
-            )}
+            {/* REMOVED: Your Comment from here */}
 
             {/* Action Buttons */}
             <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
@@ -296,8 +305,9 @@ const UserBookDetailPage: React.FC = () => {
                 startIcon={<DeleteIcon />}
                 onClick={handleDeleteUserBook}
                 sx={{
-                  borderColor: 'red',
-                  color: 'red',
+                    backgroundColor: 'white',
+                  borderColor: 'var(--primary-dark)',
+                  color: 'var(--primary-dark)',
                   '&:hover': { backgroundColor: 'rgba(255, 0, 0, 0.08)' },
                 }}
               >
@@ -307,6 +317,18 @@ const UserBookDetailPage: React.FC = () => {
           </Box>
         </CardContent>
       </Card>
+
+      {/* NEW SECTION FOR COMMENT - MOVED OUTSIDE CardContent */}
+      {userBook.comment && (
+        <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid #eee', width: '100%', p: { xs: 2, md: 3 } }}> {/* Added p for padding */}
+          <Typography variant="h6" component="h3" gutterBottom sx={{ color: 'var(--primary-dark)', fontWeight: 600 }}>
+            Your Comment
+          </Typography>
+          <Typography variant="body1" sx={{ fontStyle: 'italic', whiteSpace: 'pre-wrap' }}>
+            "{userBook.comment}"
+          </Typography>
+        </Box>
+      )}
 
       {/* Edit User Book Modal */}
       <Dialog open={isEditModalOpen} onClose={handleCloseEditModal}>
@@ -347,7 +369,7 @@ const UserBookDetailPage: React.FC = () => {
             type="text"
             fullWidth
             multiline
-            rows={3}
+            rows={10} // Keep rows for the input field in the modal
             variant="outlined"
             value={editComment}
             onChange={(e) => setEditComment(e.target.value)}
