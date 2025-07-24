@@ -1,6 +1,7 @@
 // src/components/BookCard.tsx
 import React from 'react';
 import { Card, CardContent, CardMedia, Typography, Box } from '@mui/material';
+import { useNavigate } from 'react-router-dom'; // <--- C'EST CETTE LIGNE QUI MANQUAIT !
 
 // Interface pour BookSummaryDto (doit correspondre à celle définie dans MyBooksPage.tsx et App.tsx)
 interface BookSummaryDto {
@@ -19,14 +20,20 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
   // Utilise les propriétés de l'objet 'book'
   const { bookId, title, author, imageUrl } = book;
 
+  const navigate = useNavigate(); // Initialisez le hook de navigation
+
+  const handleCardClick = () => {
+    navigate(`/books/${bookId}`); // Redirige vers la page de détails du livre en utilisant bookId
+  };
+
   // Utilise le même placeholder que votre ancienne version
   const placeholderImage = `https://placehold.co/200x300/D2D0A0/2A3F2A?text=Image+Not+Available`;
 
   return (
     <Card
+      // Ajoutez le curseur pointer et l'événement onClick ici
       sx={{
         width: 250, // MODIFIÉ: Largeur fixe de 250px
-        // SUPPRIMÉ: maxWidth: 250, // Supprimé car la largeur est maintenant fixe
         margin: 'auto', // Centrage horizontal si le parent est plus large que la carte
         borderRadius: '12px',
         boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
@@ -38,7 +45,9 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
         display: 'flex',
         flexDirection: 'column',
         height: '100%', // Assure que toutes les cartes ont la même hauteur dans une grille
+        cursor: 'pointer', // <--- Ajoute le curseur pointer
       }}
+      onClick={handleCardClick} // <--- Attache le gestionnaire de clic
     >
       <CardMedia
         component="img"

@@ -1,3 +1,4 @@
+// src/pages/MyBooksPage.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -5,46 +6,25 @@ import {
   CircularProgress,
   Alert,
   Box,
-  Grid, 
+  Grid,
   TextField,
-  InputAdornment, 
+  InputAdornment,
   IconButton
-
 } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search'; 
-//import { useAuth } from '../hooks/useAuth';
+import SearchIcon from '@mui/icons-material/Search';
 
-import BookCard from '../components/BookCard';
+// IMPORTS MODIFIÉS: Importez les interfaces et le service
+import type { UserBookDto } from '../types/userBook'; // Utilisez 'type' pour l'interface UserBookDto
+// Importez AuthError en plus de getUserBooksByUserId
+import { getUserBooksByUserId, AuthError } from '../api/userBookService'; 
 
+// NOUVEAU: Importez le nouveau composant UserBookCard
+import UserBookCard from '../components/UserBookCard';
 
-interface UserSummaryDto {
-  userId: number;
-  userName: string;
-  email: string;
-}
-
-interface BookSummaryDto {
-  bookId: number;
-  title: string;
-  author: string;
-  imageUrl: string | null;
-}
-
-
-interface UserBookDto {
-  id: number;
-  user: UserSummaryDto; 
-  book: BookSummaryDto; 
-  status: string; 
-  rating: number; 
-  comment: string; 
-}
 
 const MyBooksPage: React.FC = () => {
-  // Récupère l'ID de l'utilisateur depuis les paramètres de l'URL
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
-  //const { handleLogout } = useAuth()
 
   const handleLogout = useCallback((message?: string) => {
     console.log("Logout triggered by MybooksPage (local):", message || "No specific message.");
@@ -52,7 +32,9 @@ const MyBooksPage: React.FC = () => {
     localStorage.removeItem('userRole');
     localStorage.removeItem('userId');
     if (message) {
-      alert(message);
+      // Utilisez une modale personnalisée au lieu d'alert()
+      // Par exemple: showCustomAlertDialog(message);
+      alert(message); // Gardé pour l'instant pour la compatibilité
     }
     navigate('/login', { state: { message: message || "You have been logged out." } });
   }, [navigate]);
@@ -62,16 +44,12 @@ const MyBooksPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
 
-  // Récupère le rôle et l'ID de l'utilisateur connecté pour l'autorisation
   const currentUserRole = localStorage.getItem('userRole');
   const currentLoggedInUserId = localStorage.getItem('userId');
   const isCurrentUserAdmin = currentUserRole === 'ROLE_ADMIN';
 
-  
   const isAuthorized = isCurrentUserAdmin || (currentLoggedInUserId === userId);
 
-
-  
   const fetchUserBooks = useCallback(async (keyword: string) => {
     if (!userId) {
       setError("User ID is missing.");
@@ -79,95 +57,57 @@ const MyBooksPage: React.FC = () => {
       return;
     }
 
-    // Si l'utilisateur n'est pas autorisé, ne tente pas de charger les données
     if (!isAuthorized) {
       setLoading(false);
       return;
     }
 
-
-
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('jwtToken');
-      if (!token) {
-        setError("Authentication token not found. Please log in.");
-        setLoading(false);
-        return;
+      const parsedUserId = parseInt(userId);
+      if (isNaN(parsedUserId)) {
+          throw new Error("Invalid User ID format.");
       }
-
-       let apiUrl = `http://localhost:8080/api/user-books/by-user/${userId}`;;
-      if (keyword) {
-         //@GetMapping("/by-user/{userId}/search")
-        // public ResponseEntity<List<UserBookDto>> searchUserBooksByUserIdAndKeyword(@PathVariable Long userId, @RequestParam String keyword) { ... }
-       
-       apiUrl = `http://localhost:8080/api/user-books/by-user/${userId}/search?keyword=${encodeURIComponent(keyword)}`;
-      }
-
-      // Appel à l'API pour récupérer la liste des livres de l'utilisateur
-      const response = await fetch(apiUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (response.status === 401) { // NOUVEAU: Gère l'expiration du token
-        handleLogout("Your session has expired. Please login.");
-        return;
-      }
-      if (!response.ok) {
-        const errorText = await response.text();
-        let parsedError = `HTTP Error: ${response.status} - ${response.statusText}`;
-        try {
-          const errorJson = JSON.parse(errorText);
-          parsedError = errorJson.message || errorJson.error || parsedError;
-        } catch (e) {
-          // Fallback to raw text if JSON parsing fails
-        }
-        throw new Error(parsedError);
-      }
-
-      const data: UserBookDto[] = await response.json();
+      // APPEL AU SERVICE: Utilise getUserBooksByUserId du service
+      const data: UserBookDto[] = await getUserBooksByUserId(parsedUserId, keyword);
       setBooks(data);
     } catch (err: any) {
       console.error("Error fetching user books:", err);
-      setError(`Failed to load user books: ${err.message}. Ensure you are logged in and authorized.`);
+      // Gère spécifiquement les erreurs d'authentification lancées par le service
+      if (err instanceof AuthError) { // Vérifie si l'erreur est une AuthError
+        handleLogout(err.message); // Utilise le message de l'AuthError pour la déconnexion
+      } else {
+        setError(`Failed to load user books: ${err.message}. Ensure you are logged in and authorized.`);
+      }
     } finally {
       setLoading(false);
     }
-  }, [userId, isAuthorized, handleLogout]); // Dépend de userId et isAuthorized
+  }, [userId, isAuthorized, handleLogout]);
 
   useEffect(() => {
     fetchUserBooks('');
-  }, [fetchUserBooks]); // S'exécute quand fetchUserBooks change (donc quand userId ou isAuthorized change)
+  }, [fetchUserBooks]);
 
-useEffect(() => {
-    // Définit un délai avant d'appeler la fonction de recherche
+  useEffect(() => {
     const handler = setTimeout(() => {
-      if (isAuthorized) { // S'assure que l'utilisateur est autorisé avant de lancer la recherche
-        fetchUserBooks(searchTerm); // Appelle la recherche avec le terme actuel
+      if (isAuthorized) {
+        fetchUserBooks(searchTerm);
       }
-    }, 300); // Délai de 300ms (vous pouvez ajuster cette valeur)
+    }, 300);
 
-    // Fonction de nettoyage: si searchTerm change avant la fin du délai,
-    // le timeout précédent est annulé pour éviter des appels API inutiles.
     return () => {
       clearTimeout(handler);
     };
-  }, [searchTerm, fetchUserBooks, isAuthorized]); 
-  // Redirection ou message d'accès refusé si l'utilisateur n'est pas autorisé
+  }, [searchTerm, fetchUserBooks, isAuthorized]);
 
   if (!isAuthorized) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 64px)', p: 3 }}>
-        <Alert severity="error">Access Denied. You are not authorized to view this user's books.</Alert>
+        <Alert severity="error">Accès refusé. Vous n'êtes pas autorisé à voir les livres de cet utilisateur.</Alert>
       </Box>
     );
   }
-
 
   if (error) {
     return (
@@ -180,19 +120,19 @@ useEffect(() => {
   return (
     <Box sx={{ maxWidth: 1200, margin: '20px auto', padding: '20px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
       <Typography variant="h4" component="h1" gutterBottom sx={{ color: 'var(--primary-dark)', textAlign: 'center', mb: 4 }}>
-        My Books
+        My bookstack
       </Typography>
 
- <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
         <TextField
-          label="Search My Books"
+          label="Rechercher dans mes livres"
           variant="outlined"
           fullWidth
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)} // Met à jour searchTerm à chaque frappe
+          onChange={(e) => setSearchTerm(e.target.value)}
           onKeyPress={(e) => {
             if (e.key === 'Enter') {
-              fetchUserBooks(searchTerm); // Déclenche la recherche immédiatement avec Entrée
+              fetchUserBooks(searchTerm);
             }
           }}
           InputProps={{
@@ -210,29 +150,27 @@ useEffect(() => {
       </Box>
 
       {loading && (
-  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 4 }}>
-    <CircularProgress sx={{ color: 'var(--primary-dark)' }} />
-    <Typography sx={{ ml: 1, color: 'var(--text-dark)' }}>Loading your books...</Typography>
-  </Box>
-)}
-
-
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 4 }}>
+          <CircularProgress sx={{ color: 'var(--primary-dark)' }} />
+          <Typography sx={{ ml: 1, color: 'var(--text-dark)' }}>Chargement de vos livres...</Typography>
+        </Box>
+      )}
 
       {!loading && books.length === 0 && (
-  <Typography variant="h6" sx={{ textAlign: 'center', mt: 4, color: 'var(--text-dark)' }}>
-    You don't have any books in your collection yet.
-  </Typography>
-)}
+        <Typography variant="h6" sx={{ textAlign: 'center', mt: 4, color: 'var(--text-dark)' }}>
+          Vous n'avez pas encore de livres dans votre collection.
+        </Typography>
+      )}
 
       {!loading && books.length > 0 && (
-  <Grid container spacing={4} justifyContent="center" sx={{ minHeight: '400px' }}>
-    {books.map((userBook) => (
-      <Grid item key={userBook.id} xs={12} sm={6} md={4} lg={3}>
-        <BookCard book={userBook.book} />
-      </Grid>
-    ))}
-  </Grid>
-)}
+        <Grid container spacing={4} justifyContent="center" sx={{ minHeight: '400px' }}>
+          {books.map((userBook) => (
+            <Grid item key={userBook.id} xs={12} sm={6} md={4} lg={3}>
+              <UserBookCard userBook={userBook} />
+            </Grid>
+          ))}
+        </Grid>
+      )}
     </Box>
   );
 };
