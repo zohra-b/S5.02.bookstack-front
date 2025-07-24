@@ -2,22 +2,25 @@ import React, { useState } from 'react';
 import { AppBar, Toolbar, Typography, Button, IconButton, Menu, MenuItem } from '@mui/material';
 import { useNavigate } from 'react-router-dom'; // Importe useNavigate pour la navigation programmatique
 import MenuIcon from '@mui/icons-material/Menu';
+import AddIcon from '@mui/icons-material/Add';
 
 // Définition des props que le composant Header peut recevoir
 interface HeaderProps {
-  isAuthenticated: boolean; // Indique si un utilisateur est connecté
+  isAuthenticated: boolean; 
   userName: string | null; 
   userRole: string | null; 
   currentLoggedInUserId: string | null;  //ID de l'utilisateur actuellement connecté
   onRegisterClick: () => void; // Fonction à appeler quand on clique sur "Register"
-  onLoginClick: () => void;   // Fonction à appeler quand on clique sur "Login" (pour ouvrir la modale)
-  onLogout: () => void;     // Fonction à appeler pour déconnecter l'utilisateur
-  onUserManagementClick: () => void; // Fonction à appeler pour accéder à la gestion des utilisateurs
-   onMyBooksClick: () => void;  // Fonction à appeler pour accéder à la page "My Books"
+  onLoginClick: () => void;   // (pour ouvrir la modale Login)
+  onLogout: () => void;     
+  onUserManagementClick: () => void;
+  onMyBooksClick: () => void;  
+  onAddBookClick: () => void; 
+  
 }
 
 // Le composant Header est maintenant un composant fonctionnel qui reçoit des props
-const Header: React.FC<HeaderProps> = ({ isAuthenticated, userName, userRole, currentLoggedInUserId, onRegisterClick, onLoginClick, onLogout, onUserManagementClick,onMyBooksClick }) => {
+const Header: React.FC<HeaderProps> = ({ isAuthenticated, userName, userRole, currentLoggedInUserId, onRegisterClick, onLoginClick, onLogout, onUserManagementClick,onMyBooksClick,onAddBookClick}) => {
   const navigate = useNavigate(); // Initialise le hook useNavigate pour obtenir la fonction de navigation
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
@@ -27,6 +30,8 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated, userName, userRole, cu
     setAnchorEl(event.currentTarget);
   };
 
+ 
+
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
@@ -34,6 +39,10 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated, userName, userRole, cu
   // Fonction pour naviguer vers la page d'accueil en cliquant sur le titre "Bookstack"
   const handleTitleClick = () => {
     navigate('/'); // Navigue vers la route / (page d'accueil)
+  };
+
+   const handleBookManagementClick = () => {
+    navigate('/admin/books');
   };
 
   const isAdmin = isAuthenticated && userRole === 'ROLE_ADMIN';
@@ -81,7 +90,39 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated, userName, userRole, cu
               >
                 User Management
               </Button>
+            )} {isAdmin && ( // NOUVEAU: Affiche le bouton de gestion des livres si l'utilisateur est ADMIN
+              <Button
+                color="inherit"
+                sx={{
+                  color: 'white',
+                  '&:hover': { backgroundColor: 'var(--primary-medium)' },
+                  border: '1px solid white',
+                  borderRadius: '5px',
+                  padding: '6px 12px',
+                  fontWeight: 'bold',
+                }}
+                onClick={handleBookManagementClick}
+              >
+                Book Management
+              </Button>
             )}
+            <Button
+              color="inherit"
+              startIcon={<AddIcon />}
+              sx={{
+                color: 'white',
+                '&:hover': { backgroundColor: 'var(--primary-medium)' },
+                border: '1px solid white',
+                borderRadius: '5px',
+                padding: '6px 12px',
+                fontWeight: 'bold',
+              }}
+              onClick={onAddBookClick}
+            >
+              Add New Book
+            </Button>
+
+            
            <IconButton
               aria-label="my space menu"
               aria-controls={openMenu ? 'basic-menu' : undefined}

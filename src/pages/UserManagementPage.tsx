@@ -14,28 +14,31 @@ import {
   Paper,
   Button,
   ButtonGroup,
-  IconButton, 
-  Dialog, 
+  IconButton,
+  Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit'; 
-import SwapCallsIcon from '@mui/icons-material/SwapCalls'; 
-import DeleteIcon from '@mui/icons-material/Delete'; 
-import { useNavigate } from 'react-router-dom'; // NOUVEAU: Importation de useNavigate
+import EditIcon from '@mui/icons-material/Edit';
+import SwapCallsIcon from '@mui/icons-material/SwapCalls';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { useNavigate } from 'react-router-dom';
+//import { useAuth } from '../hooks/useAuth'; // NOUVEAU: Importation du hook useAuth
 
 // Interface pour les données utilisateur (à adapter selon votre UserDto du backend)
 interface UserData {
   userId: number;
-  userName: string; 
+  userName: string;
   email: string;
-  role: string; 
+  role: string;
 }
 
 const UserManagementPage: React.FC = () => {
-     const navigate = useNavigate(); // Initialisation de useNavigate
+  const navigate = useNavigate();
+  //const { handleLogout } = useAuth(); // NOUVEAU: Utilisation du hook useAuth
+
 
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -51,7 +54,17 @@ const UserManagementPage: React.FC = () => {
   // Récupère le rôle de l'utilisateur connecté depuis localStorage pour l'affichage conditionnel
   const currentUserRole = localStorage.getItem('userRole');
   const isCurrentUserAdmin = currentUserRole === 'ROLE_ADMIN';
-
+const handleLogout = useCallback((message?: string) => {
+    console.log("Logout triggered by UserManagementPage (local):", message || "No specific message.");
+    localStorage.removeItem('jwtToken');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userId');
+    if (message) {
+      alert(message);
+    }
+    navigate('/login', { state: { message: message || "You have been logged out." } });
+  }, [navigate]);
+  
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -76,6 +89,11 @@ const UserManagementPage: React.FC = () => {
         },
       });
 
+      if (response.status === 401) { 
+        handleLogout("Your session has expired. Please login.");
+        return; // Arrête l'exécution de la fonction ici
+      }
+
       if (!response.ok) {
         const errorText = await response.text();
         let parsedError = `HTTP Error: ${response.status} - ${response.statusText}`;
@@ -96,11 +114,16 @@ const UserManagementPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [filterRole]);
+  }, [filterRole, handleLogout]); // MODIFIÉ: Ajout de handleLogout dans les dépendances
 
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    if (isCurrentUserAdmin) { // Seuls les admins peuvent charger cette page
+      fetchUsers();
+    } else {
+      setLoading(false);
+      setError("Access Denied. You must be an administrator to view this page.");
+    }
+  }, [fetchUsers, isCurrentUserAdmin]);
 
   // Fonctions pour gérer les actions de l'utilisateur (Toggle Role, Delete)
   const handleOpenConfirmDialog = (user: UserData, type: 'toggleRole' | 'delete') => {
@@ -149,6 +172,11 @@ const UserManagementPage: React.FC = () => {
         throw new Error("Invalid action type.");
       }
 
+      if (response.status === 401) { 
+        handleLogout("Your session has expired. Please login.");
+        return; // Arrête l'exécution de la fonction ici
+      }
+
       if (!response.ok) {
         const errorText = await response.text();
         let parsedError = `HTTP Error: ${response.status} - ${response.statusText}`;
@@ -172,7 +200,7 @@ const UserManagementPage: React.FC = () => {
     }
   };
 
-  //Gérer la modification  navigue vers la page users/edit
+  //Gérer la modification  navigue vers la page users/edit
   const handleEditUser = (user: UserData) => {
     console.log("Navigating to edit user:", user.userId);
     // Navigue vers une route d'édition spécifique à l'utilisateur
