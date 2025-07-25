@@ -1,32 +1,13 @@
-// src/App.tsx
-// C'est le composant principal de votre application.
-// Il gère la structure globale, le routage et l'état d'authentification de l'utilisateur.
-
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import {useNavigate } from 'react-router-dom';
+import AppRoutes from './routes/AppRoutes';
 
-// Importation des composants séparés
 import Header from './components/Header';
 import LoginModal from './components/LoginModal';
 
-// Importation des pages de l'application
-import RegisterPage from './pages/RegisterPage';
-import UserManagementPage from './pages/UserManagementPage';
-import UserEditPage from './pages/UserEditPage';
-import MyBooksPage from './pages/MyBooksPage';
-import HomeContent from './HomeContent'; 
-import BookManagementPage from './pages/BookManagementPage'; 
-import AddBookPage from './pages/AddBookPage';
-import BookDetailPage from './pages/BookDetailPage';
-import UserBookDetailPage from './pages/UserBookDetailPage';
-import EditBookPage from './pages/EditBookPage';
-
-
 import { Typography, CircularProgress, Alert } from '@mui/material';
 
-
-
-// Composant App: Gère la structure globale de l'application et le routage.
+// Composant principal de l'application, Gère la structure globale de l'application et le routage.
 function App() {
   const navigate = useNavigate();
 
@@ -167,19 +148,8 @@ function App() {
         onMyBooksClick={handleMyBooksClick}
         onAddBookClick={() => navigate('/books/new')} // NOUVEAU: Ajout de la fonction pour ajouter un livre
       />
-
-     <Routes>
-        <Route path="/" element={<HomeContent />} />
-        <Route path="/books/:bookId" element={<BookDetailPage />} />
-        <Route path="/my-books/entry/:userBookId" element={<UserBookDetailPage />} />
-        <Route path="/register" element={<RegisterPage onRegistrationSuccessAndLogin={handleRegistrationSuccessAndLogin} />}  />
-        <Route path="/admin/users" element={<UserManagementPage />} />
-        <Route path="/admin/users/edit/:userId" element={<UserEditPage />} />
-        <Route path="/my-books/:userId" element={<MyBooksPage />}   />
-        <Route path="/admin/books" element={<BookManagementPage />} />
-        <Route path="/admin/books/edit/:bookId" element={<EditBookPage />} />
-        <Route path="/books/new" element={<AddBookPage />} />
-      </Routes>
+      
+      <AppRoutes onRegistrationSuccessAndLogin={handleRegistrationSuccessAndLogin} />
 
       <LoginModal
         open={isLoginModalOpen}
