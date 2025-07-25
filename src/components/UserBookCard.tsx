@@ -173,23 +173,17 @@ const UserBookCard: React.FC<UserBookCardProps> = ({ userBook }) => {
     navigate(`/my-books/entry/${id}`); // Navigate to the specific user book entry page
   };
 
-  // Define placeholder image logic here, after book properties are destructured
-  const maxTitleLength = 25; // Maximum characters for title before truncating
-  const maxAuthorLength = 20; // Maximum characters for author before truncating
+  // Define placeholder text for display within the custom div
+  const maxTitleLength = 40; 
+  const maxAuthorLength = 30; 
 
-  const truncatedTitle = title && title.length > maxTitleLength
+  const displayTitle = title && title.length > maxTitleLength
     ? title.substring(0, maxTitleLength) + '...'
     : title || 'No Title';
 
-  // MODIFIED: If author is empty or null, use an empty string for the placeholder,
-  // to avoid "Unknown Author" in the placeholder itself if we want to hide it.
-  const truncatedAuthorForPlaceholder = author && author.length > maxAuthorLength
+  const displayAuthor = author && author.length > maxAuthorLength
     ? author.substring(0, maxAuthorLength) + '...'
-    : author || ''; // Use an empty string if author is null/empty
-
-  // The placeholder text will include the author only if it's present
-  const placeholderText = `${encodeURIComponent(truncatedTitle)}${truncatedAuthorForPlaceholder ? '%0Aby%20' + encodeURIComponent(truncatedAuthorForPlaceholder) : ''}`;
-  const placeholderImage = `https://placehold.co/200x300/D2D0A0/2A3F2A?text=${placeholderText}`;
+    : author || 'Unknown Author';
 
 
   // Function to format the enum status to readable text
@@ -224,22 +218,103 @@ const UserBookCard: React.FC<UserBookCardProps> = ({ userBook }) => {
       }}
       onClick={handleCardClick}
     >
-      <CardMedia
-        component="img"
-        height="300"
-        image={imageUrl || placeholderImage}
-        alt={title}
-        sx={{
-          objectFit: 'contain',
-          borderTopLeftRadius: '12px',
-          borderTopRightRadius: '12px',
-          width: '100%',
-        }}
-        onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-          e.currentTarget.onerror = null;
-          e.currentTarget.src = placeholderImage;
-        }}
-      />
+       {imageUrl ? (  //conditionnel pour vérifier si imageUrl est défini
+              <CardMedia
+                component="img"
+                height="300"
+                image={imageUrl}
+                alt={title}
+                sx={{
+                  objectFit: 'contain',
+                  borderTopLeftRadius: '12px',
+                  borderTopRightRadius: '12px',
+                  width: '100%',
+                }}
+                onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                  e.currentTarget.onerror = null; // Prevent infinite loops
+                  // Fallback to custom placeholder div if image fails to load
+                  e.currentTarget.style.display = 'none'; // Hide the broken image icon
+                  const parent = e.currentTarget.parentElement;
+                  if (parent) {
+                    const placeholderDiv = document.createElement('div');
+                    placeholderDiv.className = 'custom-image-placeholder';
+                    placeholderDiv.innerHTML = `
+                      <span class="placeholder-title">${displayTitle}</span>
+                      ${author && author.trim() !== '' ? `<span class="placeholder-author">by ${displayAuthor}</span>` : ''}
+                    `;
+                    // Apply styles dynamically or via a CSS class
+                    Object.assign(placeholderDiv.style, {
+                      height: '300px',
+                      width: '100%',
+                      backgroundColor: 'var(--background-light)',
+                      borderRadius: '12px 12px 0 0',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      textAlign: 'center',
+                      padding: '10px',
+                      boxSizing: 'border-box',
+                      color: 'var(--text-dark)',
+                      fontWeight: 'bold',
+                      fontSize: '1.2rem',
+                      lineHeight: '1.4',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    });
+                    // Add styles for nested spans
+                    const styleSheet = document.createElement('style');
+                    styleSheet.type = 'text/css';
+                    styleSheet.innerText = `
+                      .custom-image-placeholder .placeholder-title {
+                        font-size: 1.2rem;
+                        font-weight: bold;
+                        color: var(--primary-dark);
+                      }
+                      .custom-image-placeholder .placeholder-author {
+                        font-size: 0.9rem;
+                        color: var(--text-medium);
+                        margin-top: 5px;
+                      }
+                    `;
+                    document.head.appendChild(styleSheet);
+      
+                    parent.appendChild(placeholderDiv);
+                  }
+                }}
+              />
+            ) : (   //2eme partie de la condition : Custom placeholder div when imageUrl is null or empty
+              <Box
+                sx={{
+                  height: 300,
+                  width: '100%',
+                  backgroundColor: 'var(--background-light)',
+                  borderRadius: '12px 12px 0 0',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                  padding: '10px',
+                  boxSizing: 'border-box',
+                  color: 'var(--text-dark)',
+                  fontWeight: 'bold',
+                  fontSize: '1.2rem',
+                  lineHeight: '1.4',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                <Typography variant="h6" sx={{ color: 'var(--primary-dark)', fontSize: '1.2rem', fontWeight: 'bold' }}>
+                  {displayTitle}
+                </Typography>
+                {author && author.trim() !== '' && (
+                  <Typography variant="body2" sx={{ color: 'var(--text-medium)', fontSize: '0.9rem', mt: 0.5 }}>
+                    by {displayAuthor}
+                  </Typography>
+                )}
+              </Box>
+            )}
       <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <Box>
           <Typography
@@ -258,15 +333,14 @@ const UserBookCard: React.FC<UserBookCardProps> = ({ userBook }) => {
           >
             {title}
           </Typography>
-          {/* NEW: Only display author line if 'author' is a non-empty string */}
-          {author && author.trim() !== '' && (
+              {author && author.trim() !== '' && (
             <Typography variant="body2" color="text.secondary" sx={{ color: 'var(--text-medium)' }}>
               {author}
             </Typography>
           )}
         </Box>
 
-        {/* User-specific details for this book */}
+
         <Box sx={{ mt: 2 }}>
           <Chip
             label={formatStatus(status)}

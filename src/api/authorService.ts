@@ -1,10 +1,9 @@
-// src/api/authorService.ts
-import type { AuthorDto, CreateAuthorDto } from '../types/author'; // Assuming you have AuthorDto and CreateAuthorDto in types/author.ts
-import { AuthError } from './userBookService'; // Re-use AuthError
+import type { AuthorDto, CreateAuthorDto } from '../types/author'; 
+import { AuthError } from './userBookService'; 
 
 const API_BASE_URL = 'http://localhost:8080/api/authors';
 
-// Utility function to get authentication headers
+
 const getAuthHeaders = () => {
   const token = localStorage.getItem('jwtToken');
   if (!token) {
@@ -39,10 +38,6 @@ const handleApiResponse = async (response: Response): Promise<any> => {
   }
 };
 
-/**
- * Fetches all authors.
- * @returns A list of AuthorDto.
- */
 export const getAllAuthors = async (): Promise<AuthorDto[]> => {
   const response = await fetch(API_BASE_URL, {
     method: 'GET',
@@ -51,11 +46,7 @@ export const getAllAuthors = async (): Promise<AuthorDto[]> => {
   return handleApiResponse(response);
 };
 
-/**
- * Creates a new author.
- * @param authorData The data for the new author.
- * @returns The created AuthorDto.
- */
+
 export const createAuthor = async (authorData: CreateAuthorDto): Promise<AuthorDto> => {
   const response = await fetch(API_BASE_URL, {
     method: 'POST',
@@ -64,3 +55,4 @@ export const createAuthor = async (authorData: CreateAuthorDto): Promise<AuthorD
   });
   return handleApiResponse(response);
 };
+

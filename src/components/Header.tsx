@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AppBar, Toolbar, Typography, Button, IconButton, Menu, MenuItem } from '@mui/material';
-import { useNavigate } from 'react-router-dom'; // Importe useNavigate pour la navigation programmatique
+import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import AddIcon from '@mui/icons-material/Add';
 
@@ -9,9 +9,9 @@ interface HeaderProps {
   isAuthenticated: boolean; 
   userName: string | null; 
   userRole: string | null; 
-  currentLoggedInUserId: string | null;  //ID de l'utilisateur actuellement connecté
-  onRegisterClick: () => void; // Fonction à appeler quand on clique sur "Register"
-  onLoginClick: () => void;   // (pour ouvrir la modale Login)
+  currentLoggedInUserId: string | null;  
+  onRegisterClick: () => void; 
+  onLoginClick: () => void;  
   onLogout: () => void;     
   onUserManagementClick: () => void;
   onMyBooksClick: () => void;  
@@ -19,26 +19,22 @@ interface HeaderProps {
   
 }
 
-// Le composant Header est maintenant un composant fonctionnel qui reçoit des props
+
 const Header: React.FC<HeaderProps> = ({ isAuthenticated, userName, userRole, currentLoggedInUserId, onRegisterClick, onLoginClick, onLogout, onUserManagementClick,onMyBooksClick,onAddBookClick}) => {
   const navigate = useNavigate(); // Initialise le hook useNavigate pour obtenir la fonction de navigation
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
 
-  // Fonctions pour gérer l'ouverture et la fermeture du menu
   const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
-
- 
 
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
 
-  // Fonction pour naviguer vers la page d'accueil en cliquant sur le titre "Bookstack"
   const handleTitleClick = () => {
-    navigate('/'); // Navigue vers la route / (page d'accueil)
+    navigate('/'); 
   };
 
    const handleBookManagementClick = () => {
@@ -57,8 +53,8 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated, userName, userRole, cu
   };
 
   const handleMyBooksMenuClick = () => {
-    handleMenuClose(); // Ferme le menu
-    onMyBooksClick(); // Appelle la prop passée par App.tsx
+    handleMenuClose(); 
+    onMyBooksClick(); 
   };
 
   return (
@@ -74,9 +70,7 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated, userName, userRole, cu
           Bookstack
         </Typography>
 
-        {/* Rendu conditionnel des boutons/informations utilisateur */}
            {isAuthenticated ? (
-          // Si l'utilisateur est connecté
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             {isAdmin && ( 
               <Button
@@ -90,7 +84,7 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated, userName, userRole, cu
               >
                 User Management
               </Button>
-            )} {isAdmin && ( // NOUVEAU: Affiche le bouton de gestion des livres si l'utilisateur est ADMIN
+            )} {isAdmin && (
               <Button
                 color="inherit"
                 sx={{
@@ -122,7 +116,6 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated, userName, userRole, cu
               Add New Book
             </Button>
 
-            
            <IconButton
               aria-label="my space menu"
               aria-controls={openMenu ? 'basic-menu' : undefined}
@@ -152,13 +145,12 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated, userName, userRole, cu
             <Button
               color="inherit"
               sx={{ color: 'white', '&:hover': { backgroundColor: 'var(--primary-medium)' } }}
-              onClick={onLogout} // Appelle la fonction de déconnexion
+              onClick={onLogout} 
             >
               Logout
             </Button>
           </div>
-        ) : (
-          // Si l'utilisateur n'est PAS connecté
+        ) : ( //2e partie de la condition : Affichage des boutons Register et Login si l'utilisateur n'est pas authentifié        
           <div>
             <Button
               color="inherit"
@@ -180,5 +172,4 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated, userName, userRole, cu
     </AppBar>
   );
 };
-
 export default Header;

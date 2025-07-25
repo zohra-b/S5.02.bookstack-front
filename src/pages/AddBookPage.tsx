@@ -1,4 +1,3 @@
-// src/pages/AddBookPage.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -104,7 +103,6 @@ const AddBookPage: React.FC = () => {
       setDataLoading(true);
       setDataError(null);
       try {
-        // Use services to fetch data
         const authorsData = await getAllAuthors();
         setAvailableAuthors(authorsData);
         console.log("Fetched Authors:", authorsData);
@@ -113,12 +111,12 @@ const AddBookPage: React.FC = () => {
         setAvailableGenres(genresData);
         console.log("Fetched Genres:", genresData);
 
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error fetching authors or genres:", err);
         if (err instanceof AuthError) {
           handleLogout(err.message);
         } else {
-          setDataError(`Failed to load necessary data: ${err.message}. Ensure backend is running.`);
+          setDataError(`Failed to load necessary data: ${err instanceof Error ? err.message : 'An unknown error occurred'}. Ensure backend is running.`);
         }
       } finally {
         setDataLoading(false);
@@ -145,7 +143,6 @@ const AddBookPage: React.FC = () => {
     }
 
     try {
-      // Use service to create author
       const newAuthor: AuthorDto = await createAuthor({ firstName: newAuthorFirstName, lastName: newAuthorLastName });
       setAvailableAuthors((prevAuthors) => [...prevAuthors, newAuthor]);
       setSelectedAuthors((prevSelected) => [...prevSelected, newAuthor]);
@@ -156,23 +153,21 @@ const AddBookPage: React.FC = () => {
       setOpenNewAuthorDialog(false); // Close modal
       setNewAuthorError(null); // Reset error
 
-    } catch (err: any) {
+    } catch (err: unknown) { 
       console.error("Error creating new author:", err);
       if (err instanceof AuthError) {
         handleLogout(err.message);
       } else {
-        setNewAuthorError(err.message || "An unexpected error occurred while creating the author.");
+        setNewAuthorError(err instanceof Error ? err.message : "An unexpected error occurred while creating the author.");
       }
     } finally {
       setNewAuthorLoading(false);
     }
   };
 
-  // Function to handle creating a new genre
   const handleCreateNewGenre = async () => {
     setNewGenreLoading(true);
     setNewGenreError(null);
-
     if (!newGenreName.trim()) {
       setNewGenreError("Genre name cannot be empty.");
       setNewGenreLoading(false);
@@ -180,28 +175,27 @@ const AddBookPage: React.FC = () => {
     }
 
     try {
-      // Use service to create genre
       const newGenre: GenreDto = await createGenre({ name: newGenreName });
       setAvailableGenres((prevGenres) => [...prevGenres, newGenre]);
       setSelectedGenreIds((prevIds) => [...prevIds, newGenre.id]);
 
-      setNewGenreName(''); // Reset input field
-      setOpenNewGenreDialog(false); // Close modal
-      setNewGenreError(null); // Reset error
+      setNewGenreName(''); 
+      setOpenNewGenreDialog(false); 
+      setNewGenreError(null); 
 
-    } catch (err: any) {
+    } catch (err: unknown) { 
       console.error("Error creating new genre:", err);
       if (err instanceof AuthError) {
         handleLogout(err.message);
       } else {
-        setNewGenreError(err.message || "An unexpected error occurred while creating the genre.");
+        setNewGenreError(err instanceof Error ? err.message : "An unexpected error occurred while creating the genre.");
       }
     } finally {
       setNewGenreLoading(false);
     }
   };
 
-  // Function to handle genre checkbox change
+  
   const handleGenreCheckboxChange = (genreId: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
     console.log(`Checkbox for Genre ID ${genreId} changed. Checked: ${event.target.checked}`); // LOG
     if (event.target.checked) {
@@ -211,7 +205,7 @@ const AddBookPage: React.FC = () => {
     }
   };
 
-  // Book form submission function
+  
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -219,6 +213,7 @@ const AddBookPage: React.FC = () => {
     setError(null);
     setSuccess(null);
 
+    
     if (!title || selectedAuthors.length === 0) {
       setError("Title and at least one Author are required.");
       setLoading(false);
@@ -227,24 +222,25 @@ const AddBookPage: React.FC = () => {
 
     const authorIdsToSend = selectedAuthors.map(author => author.authorId);
 
+    // Construct the bookData object
     const bookData: CreateBookDto = {
       title,
-      ...(isbn && { isbn }),
+      isbn: isbn === '' ? null : isbn,
       authorIds: authorIdsToSend,
-      ...(description && { description }),
-      ...(publicationYear && { publicationYear: Number(publicationYear) }),
-      ...(language && { language }),
-      ...(imageUrl && { imageUrl }),
-      ...(selectedGenreIds.length > 0 && { genreIds: selectedGenreIds }),
+      description: description === '' ? null : description, 
+      publicationYear: publicationYear === '' ? null : Number(publicationYear), 
+      language: language === '' ? null : language,
+      imageUrl: imageUrl === '' ? null : imageUrl,
+      genreIds: selectedGenreIds, 
     };
 
+    console.log("AddBookPage: Sending bookData to backend:", bookData); // DEBUG LOG: What is being sent
+
     try {
-      // Use service to create book
       await createBook(bookData);
       setSuccess("Book added successfully!");
       console.log("Book added successfully:", bookData);
 
-      // Reset form
       setTitle('');
       setDescription('');
       setPublicationYear('');
@@ -254,24 +250,23 @@ const AddBookPage: React.FC = () => {
       setSelectedAuthors([]);
       setSelectedGenreIds([]);
 
-      // Optional: Redirect after a short delay
       setTimeout(() => {
         navigate('/');
       }, 2000);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error adding book:", err);
       if (err instanceof AuthError) {
         handleLogout(err.message);
       } else {
-        setError(err.message || "An unexpected error occurred while adding the book.");
+        setError(err instanceof Error ? err.message : "An unexpected error occurred while adding the book.");
       }
     } finally {
       setLoading(false);
     }
   };
 
-  // Redirect if user is not authenticated
+
   if (!isAuthenticated) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 64px)', p: 3 }}>
@@ -334,8 +329,7 @@ const AddBookPage: React.FC = () => {
         <Typography variant="body1" sx={{ color: 'var(--text-dark)', textAlign: 'center', mb: 3 }}>
           Fill in the details to add a new book to the collection.
         </Typography>
-
-        {/* Text fields */}
+        
         <TextField
           label="Title"
           variant="outlined"
@@ -395,7 +389,7 @@ const AddBookPage: React.FC = () => {
           disabled={loading}
         />
 
-        {/* Author selector and add author button */}
+       
         <Box sx={{ display: 'flex', gap: '10px', alignItems: 'flex-end', width: '100%' }}>
           <Autocomplete
             multiple

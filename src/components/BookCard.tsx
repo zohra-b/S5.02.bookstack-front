@@ -1,47 +1,38 @@
-// src/components/BookCard.tsx
 import React from 'react';
 import { Card, CardContent, CardMedia, Typography, Box, Chip, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom'; 
 
-
 import type { BookSummaryDto } from '../types/userBook';
 
-
-
 interface BookCardProps {
-  book: BookSummaryDto; // Le composant attend maintenant un objet 'book'
+  book: BookSummaryDto; 
 }
 
 const BookCard: React.FC<BookCardProps> = ({ book }) => {
   
   const { bookId, title, author, imageUrl, genres } = book;
-
   const navigate = useNavigate(); // Initialisez le hook de navigation
-
   const handleCardClick = () => {
-    navigate(`/books/${bookId}`); // Redirige vers la page de détails du livre en utilisant bookId
+    navigate(`/books/${bookId}`); 
   };
 
-  const maxTitleLength = 25; // Maximum characters for title before truncating
-  const maxAuthorLength = 20; // Maximum characters for author before truncating
+  // Define placeholder text for display within the custom div
+  const maxTitleLength = 40; 
+  const maxAuthorLength = 30; 
 
-  const truncatedTitle = title && title.length > maxTitleLength
+  const displayTitle = title && title.length > maxTitleLength
     ? title.substring(0, maxTitleLength) + '...'
     : title || 'No Title';
 
-  const truncatedAuthorForPlaceholder = author && author.length > maxAuthorLength
+  const displayAuthor = author && author.length > maxAuthorLength
     ? author.substring(0, maxAuthorLength) + '...'
-    : author || '';
-
-  const placeholderText = `${encodeURIComponent(truncatedTitle)}${truncatedAuthorForPlaceholder ? '%0Aby%20' + encodeURIComponent(truncatedAuthorForPlaceholder) : ''}`;
-  const placeholderImage = `https://placehold.co/200x300/D2D0A0/2A3F2A?text=${placeholderText}`;
+    : author || 'Unknown Author';
 
   return (
     <Card
-      // Ajoutez le curseur pointer et l'événement onClick ici
       sx={{
-        width: 250, // MODIFIÉ: Largeur fixe de 250px
-        margin: 'auto', // Centrage horizontal si le parent est plus large que la carte
+        width: 250, 
+        margin: 'auto', 
         borderRadius: '12px',
         boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
         transition: 'transform 0.2s ease-in-out',
@@ -51,27 +42,108 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
         },
         display: 'flex',
         flexDirection: 'column',
-        height: '100%', // Assure que toutes les cartes ont la même hauteur dans une grille
-        cursor: 'pointer', // <--- Ajoute le curseur pointer
+        height: '100%', 
+        cursor: 'pointer', 
       }}
       onClick={handleCardClick} 
     >
-      <CardMedia
-        component="img"
-        height="300" // Hauteur fixe pour l'image
-        image={imageUrl || placeholderImage}
-        alt={title}
-        sx={{
-          objectFit: 'contain',
-          borderTopLeftRadius: '12px',
-          borderTopRightRadius: '12px',
-          width: '100%', // L'image prend 100% de la largeur de la carte (qui est maintenant fixe à 250px)
-        }}
-        onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-          e.currentTarget.onerror = null; // Empêche les boucles infinies
-          e.currentTarget.src = placeholderImage; // Affiche l'image de substitution en cas d'erreur
-        }}
-      />
+      {imageUrl ? (  //conditionnel pour vérifier si imageUrl est défini
+        <CardMedia
+          component="img"
+          height="300"
+          image={imageUrl}
+          alt={title}
+          sx={{
+            objectFit: 'contain',
+            borderTopLeftRadius: '12px',
+            borderTopRightRadius: '12px',
+            width: '100%',
+          }}
+          onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+            e.currentTarget.onerror = null; // Prevent infinite loops
+            // Fallback to custom placeholder div if image fails to load
+            e.currentTarget.style.display = 'none'; // Hide the broken image icon
+            const parent = e.currentTarget.parentElement;
+            if (parent) {
+              const placeholderDiv = document.createElement('div');
+              placeholderDiv.className = 'custom-image-placeholder';
+              placeholderDiv.innerHTML = `
+                <span class="placeholder-title">${displayTitle}</span>
+                ${author && author.trim() !== '' ? `<span class="placeholder-author">by ${displayAuthor}</span>` : ''}
+              `;
+              
+              Object.assign(placeholderDiv.style, {
+                height: '300px',
+                width: '100%',
+                backgroundColor: 'var(--background-light)',
+                borderRadius: '12px 12px 0 0',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                textAlign: 'center',
+                padding: '10px',
+                boxSizing: 'border-box',
+                color: 'var(--text-dark)',
+                fontWeight: 'bold',
+                fontSize: '1.2rem',
+                lineHeight: '1.4',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              });
+              
+              const styleSheet = document.createElement('style');
+              styleSheet.type = 'text/css';
+              styleSheet.innerText = `
+                .custom-image-placeholder .placeholder-title {
+                  font-size: 1.2rem;
+                  font-weight: bold;
+                  color: var(--primary-dark);
+                }
+                .custom-image-placeholder .placeholder-author {
+                  font-size: 0.9rem;
+                  color: var(--text-medium);
+                  margin-top: 5px;
+                }
+              `;
+              document.head.appendChild(styleSheet);
+              parent.appendChild(placeholderDiv);
+            }
+          }}
+        />
+      ) : (   //2eme partie de la condition : Custom placeholder div when imageUrl is null or empty
+        <Box
+          sx={{
+            height: 300,
+            width: '100%',
+            backgroundColor: 'var(--background-light)',
+            borderRadius: '12px 12px 0 0',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            textAlign: 'center',
+            padding: '10px',
+            boxSizing: 'border-box',
+            color: 'var(--text-dark)',
+            fontWeight: 'bold',
+            fontSize: '1.2rem',
+            lineHeight: '1.4',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          <Typography variant="h6" sx={{ color: 'var(--primary-dark)', fontSize: '1.2rem', fontWeight: 'bold' }}>
+            {displayTitle}
+          </Typography>
+          {author && author.trim() !== '' && (
+            <Typography variant="body2" sx={{ color: 'var(--text-medium)', fontSize: '0.9rem', mt: 0.5 }}>
+              by {displayAuthor}
+            </Typography>
+          )}
+        </Box>
+      )}
+
       <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <Box>
           <Typography
@@ -109,20 +181,8 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
             </Stack>
           </Box>
         )}
-        {/* Vous pouvez ajouter ici des informations supplémentaires de UserBookDto comme status, rating, comment */}
-        {/* Par exemple:
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="body2" sx={{ color: 'var(--text-dark)' }}>
-            Status: {book.status}
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'var(--text-dark)' }}>
-            Rating: {book.rating} / 5
-          </Typography>
-        </Box>
-        */}
       </CardContent>
     </Card>
   );
 };
-
 export default BookCard;

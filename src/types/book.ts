@@ -1,6 +1,3 @@
-// src/types/book.ts
-
-// Assuming your backend BookDto looks something like this
 export interface BookDto {
   bookId: number;
   title: string;
