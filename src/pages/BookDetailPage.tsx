@@ -1,6 +1,6 @@
 // src/pages/BookDetailPage.tsx
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom'; // Import useNavigate
 import {
   Box,
   Typography,
@@ -25,9 +25,9 @@ import {
 } from '@mui/material';
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
 import type { AddUserBookDto } from '../types/userBook';
-import { addUserBook, checkIfBookInUserList } from '../api/userBookService';
+import { addUserBook, checkIfBookInUserList } from '../api/userBookService'; // Revert to original imports
 
-
+// Re-introducing FullBookData interface
 interface FullBookData {
   bookId: number;
   title: string;
@@ -42,12 +42,15 @@ interface FullBookData {
 
 const BookDetailPage: React.FC = () => {
   const { bookId } = useParams<{ bookId: string }>();
+  const navigate = useNavigate(); // Initialize useNavigate
+
   const [book, setBook] = useState<FullBookData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  // NEW: State to manage placeholder display on image load error
+  const [showImagePlaceholder, setShowImagePlaceholder] = useState<boolean>(false);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  // MODIFIÉ: Statut initial par défaut aligné avec l'enum
   const [selectedStatus, setSelectedStatus] = useState<string>('WISHLIST');
   const [selectedRating, setSelectedRating] = useState<number>(0);
   const [comment, setComment] = useState<string>('');
@@ -58,7 +61,20 @@ const BookDetailPage: React.FC = () => {
   const currentLoggedInUserId = localStorage.getItem('userId');
   const isAuthenticated = !!localStorage.getItem('jwtToken');
 
-  const placeholderImage = `https://placehold.co/300x450/D2D0A0/2A3F2A?text=Image+Not+Available`;
+  // Placeholder text for display within the custom div
+  const maxTitleLength = 40;
+  const maxAuthorLength = 30;
+
+  // These will be derived from 'book' once it's loaded, so they're conditional
+  const displayTitle = book?.title && book.title.length > maxTitleLength
+    ? book.title.substring(0, maxTitleLength) + '...'
+    : book?.title || 'No Title';
+
+  // displayAuthor for single author string
+  const displayAuthor = book?.author && book.author.length > maxAuthorLength
+    ? book.author.substring(0, maxAuthorLength) + '...'
+    : book?.author || 'Unknown Author';
+
 
   const checkBookStatusInList = async (userId: number, bookId: number) => {
     try {
@@ -70,7 +86,6 @@ const BookDetailPage: React.FC = () => {
     }
   };
 
-
   useEffect(() => {
     if (!bookId) {
       setError("Book ID is missing from the URL.");
@@ -81,7 +96,9 @@ const BookDetailPage: React.FC = () => {
     const fetchBookDetails = async () => {
       setLoading(true);
       setError(null);
+      setShowImagePlaceholder(false); // Reset placeholder state on each book load
       try {
+        // Direct fetch instead of getBookById
         const response = await fetch(`http://localhost:8080/api/books/${bookId}`);
 
         if (!response.ok) {
@@ -89,7 +106,7 @@ const BookDetailPage: React.FC = () => {
           throw new Error(`HTTP Error: ${response.status} - ${errorText}`);
         }
 
-        const data: FullBookData = await response.json();
+        const data: FullBookData = await response.json(); // Cast to FullBookData
         setBook(data);
 
         if (isAuthenticated && currentLoggedInUserId && bookId) {
@@ -105,13 +122,12 @@ const BookDetailPage: React.FC = () => {
     };
 
     fetchBookDetails();
-  }, [bookId, isAuthenticated, currentLoggedInUserId]);
+  }, [bookId, isAuthenticated, currentLoggedInUserId, navigate]);
 
 
   const handleOpenAddModal = () => {
     setIsAddModalOpen(true);
     setAddError(null);
-    // MODIFIÉ: Réinitialisation du statut par défaut aligné avec l'enum
     setSelectedStatus('WISHLIST');
     setSelectedRating(0);
     setComment('');
@@ -141,15 +157,15 @@ const BookDetailPage: React.FC = () => {
     try {
       await addUserBook(addUserBookPayload);
       setIsAddModalOpen(false);
-      alert('Book successfully added !'); 
+      alert('Book successfully added !');
       setIsBookAlreadyInList(true);
     } catch (err: any) {
       console.error("Error adding book to user list:", err);
       if (err.message && err.message.includes('409')) {
-        setAddError("This book is already in your list."); 
+        setAddError("This book is already in your list.");
         setIsBookAlreadyInList(true);
       } else {
-        setAddError(`Failed to add the book : ${err.message}`); 
+        setAddError(`Failed to add the book : ${err.message}`);
       }
     } finally {
       setIsAdding(false);
@@ -183,44 +199,79 @@ const BookDetailPage: React.FC = () => {
     );
   }
 
+  // Define the custom placeholder div rendering logic
+  const renderPlaceholder = () => (
+    <Box
+      sx={{
+        width: { xs: '100%', md: 300 },
+        height: { xs: 300, md: 'auto' }, // Maintain aspect ratio on desktop, fixed height on mobile
+        minHeight: 300, // Ensure a minimum height for the placeholder
+        backgroundColor: 'var(--background-light)', // MODIFIÉ: Fond "blanc cassé"
+        borderRadius: '12px', // Rounded corners for the cover
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        textAlign: 'center',
+        padding: '10px',
+        boxSizing: 'border-box',
+        overflow: 'hidden',
+        position: 'relative', // For positioning text in the center
+      }}
+    >
+      {/* MODIFIÉ: Le texte est directement dans le conteneur principal avec la couleur verte */}
+      <Typography variant="h6" sx={{ color: 'var(--primary-dark)', fontSize: '1.2rem', fontWeight: 'bold' }}>
+        {displayTitle}
+      </Typography>
+      {book.author && book.author.trim() !== '' && (
+        <Typography variant="body2" sx={{ color: 'var(--primary-dark)', fontSize: '0.9rem', mt: 0.5 }}> {/* MODIFIÉ: Couleur du texte en vert */}
+          by {displayAuthor}
+        </Typography>
+      )}
+    </Box>
+  );
+
   return (
     <Box sx={{ maxWidth: 900, margin: '20px auto', padding: '20px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
       <Card sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, boxShadow: 'none' }}>
-        <CardMedia
-          component="img"
-          sx={{
-            width: { xs: '100%', md: 300 },
-            height: { xs: 300, md: 'auto' },
-            objectFit: 'contain',
-            borderRadius: '4px',
-            border: '1px solid #e0e0e0',
-            p: 1,
-            boxSizing: 'border-box',
-          }}
-          image={book.imageUrl || placeholderImage}
-          alt={book.title}
-          onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.src = placeholderImage;
-          }}
-        />
+        {/* Conditional rendering of CardMedia or the placeholder */}
+        {book.imageUrl && !showImagePlaceholder ? (
+          <CardMedia
+            component="img"
+            sx={{
+              width: { xs: '100%', md: 300 },
+              height: { xs: 300, md: 'auto' },
+              objectFit: 'contain',
+              borderRadius: '4px',
+              border: '1px solid #e0e0e0',
+              p: 1,
+              boxSizing: 'border-box',
+            }}
+            image={book.imageUrl}
+            alt={book.title}
+            onError={() => setShowImagePlaceholder(true)} // Trigger placeholder display on error
+          />
+        ) : (
+          // Render the custom placeholder if imageUrl is null/empty OR if image loading failed
+          renderPlaceholder()
+        )}
         <CardContent sx={{ flex: '1 0 auto', p: { xs: 2, md: 3 } }}>
           <Typography variant="h4" component="h1" gutterBottom sx={{ color: 'var(--primary-dark)', fontWeight: 600 }}>
             {book.title}
           </Typography>
           <Typography variant="h6" color="var(--primary-medium)" gutterBottom sx={{ mb: 2 }}>
-            par {book.author}
+            by {book.author}
           </Typography>
           <Typography variant="body1" color="text.secondary" paragraph>
-            **Année de publication :** {book.publicationYear}
+            **Publication Year:** {book.publicationYear}
           </Typography>
           {book.language && (
             <Typography variant="body1" color="text.secondary" paragraph>
-              **Langue :** {book.language}
+              **Language:** {book.language}
             </Typography>
           )}
           <Typography variant="body1" color="text.secondary" paragraph>
-            **ISBN :** {book.isbn}
+            **ISBN:** {book.isbn}
           </Typography>
           <Typography variant="body1" sx={{ mt: 3, lineHeight: 1.8 }}>
             {book.description}
@@ -259,18 +310,17 @@ const BookDetailPage: React.FC = () => {
       </Card>
 
       <Dialog open={isAddModalOpen} onClose={handleCloseAddModal}>
-        <DialogTitle>Add "{book.title}" à ma liste</DialogTitle>
+        <DialogTitle>Add "{book.title}" to My List</DialogTitle>
         <DialogContent>
           <FormControl fullWidth margin="dense" sx={{ mt: 1 }}>
-            <InputLabel id="status-select-label">Statut</InputLabel>
+            <InputLabel id="status-select-label">Status</InputLabel>
             <Select
               labelId="status-select-label"
               id="status-select"
               value={selectedStatus}
-              label="Statut"
+              label="Status"
               onChange={(e) => setSelectedStatus(e.target.value as string)}
             >
-              {/* MODIFIÉ: Les valeurs des MenuItem correspondent désormais exactement à votre enum BookStatus */}
               <MenuItem value="WISHLIST">Wishlist</MenuItem>
               <MenuItem value="TO_BE_READ">To be read</MenuItem>
               <MenuItem value="READING">Reading</MenuItem>
@@ -293,7 +343,7 @@ const BookDetailPage: React.FC = () => {
           <TextField
             autoFocus
             margin="dense"
-            label="Your comments (Optionnal)"
+            label="Your comments (Optional)"
             type="text"
             fullWidth
             multiline
