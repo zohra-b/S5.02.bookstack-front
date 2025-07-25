@@ -1,6 +1,6 @@
-import type { UserBookDto, AddUserBookDto, UpdateUserBookDto } from '../types/userBook'; // Ensure correct types are imported
+import type { UserBookDto, AddUserBookDto, UpdateUserBookDto } from '../types/userBook'; 
 
-const API_BASE_URL = 'http://localhost:8080/api/user-books';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL + '/user-books';
 
 export class AuthError extends Error { //Custom error class for authentication errors.
   constructor(message: string) {
