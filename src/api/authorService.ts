@@ -1,7 +1,7 @@
 import type { AuthorDto, CreateAuthorDto } from '../types/author'; 
 import { AuthError } from './userBookService'; 
 
-const API_BASE_URL = 'http://localhost:8080/api/authors';
+const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/authors`;
 
 
 const getAuthHeaders = () => {
