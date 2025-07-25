@@ -1,24 +1,20 @@
 // src/components/BookCard.tsx
 import React from 'react';
-import { Card, CardContent, CardMedia, Typography, Box } from '@mui/material';
-import { useNavigate } from 'react-router-dom'; // <--- C'EST CETTE LIGNE QUI MANQUAIT !
+import { Card, CardContent, CardMedia, Typography, Box, Chip, Stack } from '@mui/material';
+import { useNavigate } from 'react-router-dom'; 
 
-// Interface pour BookSummaryDto (doit correspondre à celle définie dans MyBooksPage.tsx et App.tsx)
-interface BookSummaryDto {
-  bookId: number;
-  title: string;
-  author: string;
-  imageUrl: string | null;
-}
 
-// L'interface des props de BookCard attend un objet 'book' de type BookSummaryDto
+import type { BookSummaryDto } from '../types/userBook';
+
+
+
 interface BookCardProps {
   book: BookSummaryDto; // Le composant attend maintenant un objet 'book'
 }
 
 const BookCard: React.FC<BookCardProps> = ({ book }) => {
-  // Utilise les propriétés de l'objet 'book'
-  const { bookId, title, author, imageUrl } = book;
+  
+  const { bookId, title, author, imageUrl, genres } = book;
 
   const navigate = useNavigate(); // Initialisez le hook de navigation
 
@@ -26,8 +22,19 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
     navigate(`/books/${bookId}`); // Redirige vers la page de détails du livre en utilisant bookId
   };
 
-  // Utilise le même placeholder que votre ancienne version
-  const placeholderImage = `https://placehold.co/200x300/D2D0A0/2A3F2A?text=Image+Not+Available`;
+  const maxTitleLength = 25; // Maximum characters for title before truncating
+  const maxAuthorLength = 20; // Maximum characters for author before truncating
+
+  const truncatedTitle = title && title.length > maxTitleLength
+    ? title.substring(0, maxTitleLength) + '...'
+    : title || 'No Title';
+
+  const truncatedAuthorForPlaceholder = author && author.length > maxAuthorLength
+    ? author.substring(0, maxAuthorLength) + '...'
+    : author || '';
+
+  const placeholderText = `${encodeURIComponent(truncatedTitle)}${truncatedAuthorForPlaceholder ? '%0Aby%20' + encodeURIComponent(truncatedAuthorForPlaceholder) : ''}`;
+  const placeholderImage = `https://placehold.co/200x300/D2D0A0/2A3F2A?text=${placeholderText}`;
 
   return (
     <Card
@@ -47,7 +54,7 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
         height: '100%', // Assure que toutes les cartes ont la même hauteur dans une grille
         cursor: 'pointer', // <--- Ajoute le curseur pointer
       }}
-      onClick={handleCardClick} // <--- Attache le gestionnaire de clic
+      onClick={handleCardClick} 
     >
       <CardMedia
         component="img"
@@ -87,6 +94,21 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
             {author}
           </Typography>
         </Box>
+
+            {genres && genres.length > 0 && (
+          <Box sx={{ mt: 2 }}>
+            <Stack direction="row" flexWrap="wrap" spacing={1}>
+              {genres.map((genreName, index) => (
+                <Chip
+                  key={genreName || index}
+                  label={genreName}
+                  size="small"
+                  sx={{ backgroundColor: 'var(--primary-light)', color: 'white' }}
+                />
+              ))}
+            </Stack>
+          </Box>
+        )}
         {/* Vous pouvez ajouter ici des informations supplémentaires de UserBookDto comme status, rating, comment */}
         {/* Par exemple:
         <Box sx={{ mt: 2 }}>

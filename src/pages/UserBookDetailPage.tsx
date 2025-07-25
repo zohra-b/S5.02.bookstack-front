@@ -1,4 +1,3 @@
-// src/pages/UserBookDetailPage.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -46,8 +45,6 @@ const UserBookDetailPage: React.FC = () => {
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const currentLoggedInUserId = localStorage.getItem('userId'); // Used for authorization check
-
-  //const placeholderImage = `https://placehold.co/300x450/D2D0A0/2A3F2A?text=Image+Not+Available`;
 
   // Function to format the enum status to readable text
   const formatStatus = (rawStatus: string): string => {
