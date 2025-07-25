@@ -1,3 +1,6 @@
+
+import type { GenreDto } from './genre'; // Import GenreDto
+
 export interface UserSummaryDto {
   userId: number;
   userName: string;
@@ -9,6 +12,11 @@ export interface BookSummaryDto {
   title: string;
   author: string;
   imageUrl: string | null;
+  isbn: string; 
+  genres: string[];
+  publicationYear: number | null; 
+  language: string | null; 
+  description: string | null; 
 }
 
 export interface UserBookDto {

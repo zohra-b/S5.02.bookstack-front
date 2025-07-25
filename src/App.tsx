@@ -19,6 +19,7 @@ import BookManagementPage from './pages/BookManagementPage';
 import AddBookPage from './pages/AddBookPage';
 import BookDetailPage from './pages/BookDetailPage';
 import UserBookDetailPage from './pages/UserBookDetailPage';
+import EditBookPage from './pages/EditBookPage';
 
 
 import { Typography, CircularProgress, Alert } from '@mui/material';
@@ -176,7 +177,7 @@ function App() {
         <Route path="/admin/users/edit/:userId" element={<UserEditPage />} />
         <Route path="/my-books/:userId" element={<MyBooksPage />}   />
         <Route path="/admin/books" element={<BookManagementPage />} />
-        <Route path="/admin/books/edit/:bookId" element={<Typography variant="h5" sx={{ textAlign: 'center', mt: 4 }}>Book Edit Page (Coming Soon!)</Typography>}    />
+        <Route path="/admin/books/edit/:bookId" element={<EditBookPage />} />
         <Route path="/books/new" element={<AddBookPage />} />
       </Routes>
 

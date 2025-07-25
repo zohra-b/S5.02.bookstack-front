@@ -1,6 +1,3 @@
-// src/HomeContent.tsx
-// Composant HomeContent: Contient la logique et le rendu de la page d'accueil
-
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Typography,
@@ -8,49 +5,56 @@ import {
   Alert,
   Box,
   Grid,
+  Pagination,
+  Stack,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
   TextField,
   InputAdornment,
   IconButton,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 
-import BookCard from './components/BookCard'; // Assurez-vous que ce chemin est correct
+import BookCard from './components/BookCard';
+import type { BookSummaryDto } from './types/userBook'; 
+import { getAllGenres } from './api/genreService'; 
+import { AuthError } from './api/userBookService'; 
 
-// Définition de l'interface pour les données d'une carte de livre
-// Cette interface est utilisée pour les données reçues de l'API /api/books/cards et /api/books/search
-interface BookCardData {
-  bookId: number;
-  title: string;
-  author: string;
-  imageUrl: string | null;
-}
 
 const HomeContent: React.FC = () => {
-  const [books, setBooks] = useState<BookCardData[]>([]);
+  const [books, setBooks] = useState<BookSummaryDto[]>([]); 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>(''); // État pour le terme de recherche
+  const [searchTerm, setSearchTerm] = useState<string>(''); 
 
-  // Utilisation de useCallback pour mémoriser la fonction fetchBookCards.
-  // Elle prend maintenant le mot-clé en argument et ne dépend de rien, la rendant stable.
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
+
+  // Filter genres states
+  const [availableGenres, setAvailableGenres] = useState<string[]>([]); // To store all genre names from backend
+  const [filterGenreName, setFilterGenreName] = useState<string | 'ALL'>('ALL'); // State for selected genre name
+
+  // Using useCallback to memoize the fetchBookCards function.
   const fetchBookCards = useCallback(async (keyword: string) => {
     setLoading(true);
     setError(null);
     try {
-      let apiUrl = 'http://localhost:8080/api/books/cards'; // Endpoint par défaut pour toutes les cartes
+      let apiUrl = 'http://localhost:8080/api/books/cards';
       if (keyword) {
-        // Si un terme de recherche est présent, utilise l'endpoint de recherche
         apiUrl = `http://localhost:8080/api/books/search?keyword=${encodeURIComponent(keyword)}`;
       }
 
-      const response = await fetch(apiUrl); // Pas besoin de token JWT pour les cartes publiques
+      const response = await fetch(apiUrl);
 
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`HTTP Error: ${response.status} - ${errorText}`);
       }
 
-      const data: BookCardData[] = await response.json();
+      const data: BookSummaryDto[] = await response.json(); // Cast to BookSummaryDto[]
       setBooks(data);
     } catch (err: any) {
       console.error("Error fetching book cards:", err);
@@ -58,59 +62,146 @@ const HomeContent: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []); // Aucune dépendance ici, car 'keyword' est passé en argument
+  }, []); // No dependencies here, as 'keyword' is passed as an argument
 
-  // useEffect pour le chargement initial de tous les livres
+  // useEffect for initial loading of all books and genres
   useEffect(() => {
-    fetchBookCards(''); // Appelle la fonction avec une chaîne vide pour charger tous les livres au montage
-  }, [fetchBookCards]); // Dépend de fetchBookCards (qui est stable grâce à useCallback)
+    const loadInitialData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Fetch all books
+        await fetchBookCards('');
 
-  // useEffect pour le débouncing du terme de recherche
+        // Fetch all genres for the filter dropdown
+        const genresData = await getAllGenres();
+        setAvailableGenres(genresData.map(genre => genre.name)); 
+
+      } catch (err: any) {
+        console.error("Error loading initial data:", err);
+        if (err instanceof AuthError) {
+          setError(err.message + " Please log in.");
+          // Optionally redirect to login page if authentication is required for public book list
+        } else {
+          setError(`Failed to load initial data: ${err.message}.`);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadInitialData();
+  }, [fetchBookCards]); // Depends on fetchBookCards (which is stable thanks to useCallback)
+
+  // useEffect for debouncing the search term
   useEffect(() => {
-    // Définit un délai avant d'appeler la fonction de recherche
     const handler = setTimeout(() => {
-      fetchBookCards(searchTerm); // Appelle la recherche avec le terme actuel
-    }, 500); // Délai de 500ms (vous pouvez ajuster cette valeur)
+      fetchBookCards(searchTerm); // Call search with the current term
+    }, 500); // 500ms delay
 
-    // Fonction de nettoyage: si searchTerm change avant la fin du délai,
-    // le timeout précédent est annulé pour éviter des appels API inutiles.
     return () => {
       clearTimeout(handler);
     };
-  }, [searchTerm, fetchBookCards]); // L'effet se réexécute lorsque searchTerm ou fetchBookCards change
+  }, [searchTerm, fetchBookCards]); // Effect re-runs when searchTerm or fetchBookCards changes
+
+  // Filter books by genre
+  const filterBooksByGenre = books.filter((book) => {
+    if (filterGenreName === 'ALL') {
+      return true;
+    }
+    return book.genres.includes(filterGenreName);
+  });
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filterBooksByGenre.slice(indexOfFirstItem, indexOfLastItem); // Apply pagination to filtered books
+  const totalPages = Math.ceil(filterBooksByGenre.length / itemsPerPage);
+
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    setCurrentPage(value);
+  };
+
+  const handleItemsPerPageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setItemsPerPage(Number(event.target.value));
+    setCurrentPage(1); // Reset to first page when items per page changes
+  };
+
+  const handleGenreChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    setFilterGenreName(event.target.value as string | 'ALL'); // MODIFIED: Set filterGenreName (string)
+    setCurrentPage(1); // Reset to first page when filter changes
+  };
 
   return (
     <Box sx={{ maxWidth: 1200, margin: '20px auto', padding: '20px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
       <Typography variant="h4" component="h1" gutterBottom sx={{ color: 'var(--primary-dark)', textAlign: 'center', mb: 4 }}>
-        Discover Our Book Collection
+        Pump up your readings
       </Typography>
 
-      {/* Barre de recherche */}
+      {/* Search Bar */}
       <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
         <TextField
           label="Search Books by Title or Author"
           variant="outlined"
           fullWidth
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)} // Met à jour searchTerm à chaque frappe
+          onChange={(e) => setSearchTerm(e.target.value)}
           onKeyPress={(e) => {
             if (e.key === 'Enter') {
-              fetchBookCards(searchTerm); // Déclenche la recherche immédiatement avec Entrée
+              fetchBookCards(searchTerm);
             }
           }}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton onClick={() => fetchBookCards(searchTerm)} edge="end" disabled={loading}> {/* Garde l'icône désactivée pendant le chargement */}
+                <IconButton onClick={() => fetchBookCards(searchTerm)} edge="end" disabled={loading}>
                   <SearchIcon />
                 </IconButton>
               </InputAdornment>
             ),
           }}
           sx={{ maxWidth: 600, '& .MuiOutlinedInput-root': { borderRadius: '8px', backgroundColor: 'var(--background-light)' } }}
-          // SUPPRIMÉ: disabled={loading}
         />
       </Box>
+
+      {/* Filters and Pagination Controls */}
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3, justifyContent: 'space-between', alignItems: 'center' }}>
+        {/* Genre Filter */}
+        <FormControl sx={{ minWidth: 150 }}>
+          <InputLabel id="filter-genre-label">Filter by Genre</InputLabel>
+          <Select
+            labelId="filter-genre-label"
+            id="filter-genre-select"
+            value={filterGenreName}
+            label="Filter by Genre"
+            onChange={handleGenreChange}
+          >
+            <MenuItem value="ALL">All Genres</MenuItem>
+            {availableGenres.map((genreName) => ( // MODIFIED: Map genreName (string)
+              <MenuItem key={genreName} value={genreName}> {/* MODIFIED: Use genreName as key and value */}
+                {genreName}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {/* Items per page */}
+        <FormControl sx={{ minWidth: 120 }}>
+          <InputLabel id="items-per-page-label">Items per page</InputLabel>
+          <Select
+            labelId="items-per-page-label"
+            id="items-per-page-select"
+            value={itemsPerPage}
+            label="Items per page"
+            onChange={(e) => handleItemsPerPageChange(e as React.ChangeEvent<HTMLSelectElement>)}
+          >
+            <MenuItem value={6}>6</MenuItem> {/* Changed to 6 for better grid flow with 3 items per row */}
+            <MenuItem value={12}>12</MenuItem>
+            <MenuItem value={24}>24</MenuItem>
+          </Select>
+        </FormControl>
+      </Stack>
+
 
       {loading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 4 }}>
@@ -125,27 +216,40 @@ const HomeContent: React.FC = () => {
         </Alert>
       )}
 
-      {!loading && !error && books.length === 0 && (
+      {!loading && !error && filterBooksByGenre.length === 0 && (
         <Typography variant="h6" sx={{ textAlign: 'center', mt: 4, color: 'var(--text-dark)' }}>
-          No books found.
+          No books found matching your criteria.
         </Typography>
       )}
 
-      {!loading && !error && books.length > 0 && (
+      {!loading && !error && filterBooksByGenre.length > 0 && (
         <Grid container spacing={4} justifyContent="center">
-          {books.map((book) => (
+          {currentItems.map((book) => (
             <Grid
               item
               key={book.bookId}
-              xs={12}   // 1 colonne sur les très petits écrans (< 600px)
-              sm={6}    // 2 colonnes sur les petits écrans (600px - 960px)
-              md={4}    // 3 colonnes sur les écrans moyens (960px - 1280px)
-              lg={3}    // 4 colonnes sur les grands écrans (>= 1280px)
+              xs={12}   // 1 column on very small screens (< 600px)
+              sm={6}    // 2 columns on small screens (600px - 960px)
+              md={4}    // 3 columns on medium screens (960px - 1280px)
+              lg={3}    // 4 columns on large screens (>= 1280px)
             >
               <BookCard book={book} />
             </Grid>
           ))}
         </Grid>
+      )}
+
+      {/* Pagination Controls */}
+      {!loading && !error && filterBooksByGenre.length > 0 && totalPages > 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <Pagination
+            count={totalPages}
+            page={currentPage}
+            onChange={handlePageChange}
+            color="primary"
+            size="large"
+          />
+        </Box>
       )}
     </Box>
   );

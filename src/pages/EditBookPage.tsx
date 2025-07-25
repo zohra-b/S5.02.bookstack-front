@@ -1,6 +1,6 @@
-// src/pages/AddBookPage.tsx
+// src/pages/EditBookPage.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Typography,
   TextField,
@@ -30,10 +30,10 @@ import {
 // Import types from dedicated files
 import type { AuthorDto, CreateAuthorDto } from '../types/author';
 import type { GenreDto, CreateGenreDto } from '../types/genre';
-import type { CreateBookDto } from '../types/book';
+import type { BookDto, UpdateBookDto } from '../types/book'; // Import BookDto and UpdateBookDto
 
 // Import service functions
-import { createBook } from '../api/bookService';
+import { getBookById, updateBook } from '../api/bookService'; // Get specific book and update
 import { getAllAuthors, createAuthor } from '../api/authorService';
 import { getAllGenres, createGenre } from '../api/genreService';
 import { AuthError } from '../api/userBookService'; // Re-use AuthError
@@ -45,7 +45,8 @@ const filterOptions = createFilterOptions({
   stringify: (option: AuthorDto) => `${option.firstName} ${option.lastName}`,
 });
 
-const AddBookPage: React.FC = () => {
+const EditBookPage: React.FC = () => {
+  const { bookId } = useParams<{ bookId: string }>(); // Get bookId from URL
   const navigate = useNavigate();
 
   // States for book form fields
@@ -63,10 +64,10 @@ const AddBookPage: React.FC = () => {
   const [availableGenres, setAvailableGenres] = useState<GenreDto[]>([]);
 
   // States for main form request handling
-  const [loading, setLoading] = useState(false);
-  const [dataLoading, setDataLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [dataError, setDataError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false); // For form submission
+  const [dataLoading, setDataLoading] = useState(true); // For initial data fetch
+  const [error, setError] = useState<string | null>(null); // For form submission errors
+  const [dataError, setDataError] = useState<string | null>(null); // For initial data fetch errors
   const [success, setSuccess] = useState<string | null>(null);
 
   // States for add author modal
@@ -87,7 +88,7 @@ const AddBookPage: React.FC = () => {
   });
 
   const handleLogout = useCallback((message?: string) => {
-    console.log("Logout triggered by AddBookPage:", message || "No specific message.");
+    console.log("Logout triggered by EditBookPage:", message || "No specific message.");
     localStorage.removeItem('jwtToken');
     localStorage.removeItem('userRole');
     localStorage.removeItem('userId');
@@ -98,27 +99,54 @@ const AddBookPage: React.FC = () => {
     navigate('/login', { state: { message: message || "You have been logged out." } });
   }, [navigate]);
 
-  // Effect to load available authors and genres on component mount
+  // Effect to load existing book data, available authors, and genres on component mount
   useEffect(() => {
-    const fetchAuthorsAndGenres = async () => {
+    const fetchBookAndFormData = async () => {
       setDataLoading(true);
       setDataError(null);
+
+      console.log("EditBookPage: Raw bookId from useParams:", bookId); // DEBUG LOG 1
+
+      // IMPORTANT: Check if bookId is available before proceeding
+      if (!bookId) {
+        setDataError("Book ID is missing from the URL. Please navigate from a valid book link.");
+        setDataLoading(false);
+        return; // Exit early if no bookId
+      }
+
       try {
-        // Use services to fetch data
+        // Fetch existing book details
+        const parsedBookId = parseInt(bookId);
+        console.log("EditBookPage: Parsed bookId (parseInt):", parsedBookId); // DEBUG LOG 2
+
+        if (isNaN(parsedBookId)) {
+          throw new Error("Invalid Book ID format.");
+        }
+        const bookData: BookDto = await getBookById(parsedBookId);
+        console.log("EditBookPage: Fetched book data:", bookData); // DEBUG LOG 3
+
+        setTitle(bookData.title);
+        setDescription(bookData.description || '');
+        setPublicationYear(bookData.publicationYear || '');
+        setLanguage(bookData.language || '');
+        setImageUrl(bookData.imageUrl || '');
+        setIsbn(bookData.isbn);
+        setSelectedAuthors(bookData.authors || []); // Pre-fill selected authors
+        setSelectedGenreIds(bookData.genres ? bookData.genres.map(g => g.id) : []); // Pre-fill selected genres
+
+        // Fetch available authors and genres (same as AddBookPage)
         const authorsData = await getAllAuthors();
         setAvailableAuthors(authorsData);
-        console.log("Fetched Authors:", authorsData);
 
         const genresData = await getAllGenres();
         setAvailableGenres(genresData);
-        console.log("Fetched Genres:", genresData);
 
       } catch (err: any) {
-        console.error("Error fetching authors or genres:", err);
+        console.error("Error fetching book or form data:", err);
         if (err instanceof AuthError) {
           handleLogout(err.message);
         } else {
-          setDataError(`Failed to load necessary data: ${err.message}. Ensure backend is running.`);
+          setDataError(`Failed to load book or necessary data: ${err.message}. Ensure backend is running.`);
         }
       } finally {
         setDataLoading(false);
@@ -126,12 +154,12 @@ const AddBookPage: React.FC = () => {
     };
 
     if (isAuthenticated) {
-      fetchAuthorsAndGenres();
+      fetchBookAndFormData();
     } else {
       setDataLoading(false);
-      setDataError("You must be logged in to add a book.");
+      setDataError("You must be logged in to edit a book.");
     }
-  }, [isAuthenticated, handleLogout]);
+  }, [bookId, isAuthenticated, handleLogout]);
 
 
   const handleCreateNewAuthor = async () => {
@@ -145,16 +173,14 @@ const AddBookPage: React.FC = () => {
     }
 
     try {
-      // Use service to create author
       const newAuthor: AuthorDto = await createAuthor({ firstName: newAuthorFirstName, lastName: newAuthorLastName });
       setAvailableAuthors((prevAuthors) => [...prevAuthors, newAuthor]);
       setSelectedAuthors((prevSelected) => [...prevSelected, newAuthor]);
 
-      // Reset input fields
       setNewAuthorFirstName('');
       setNewAuthorLastName('');
-      setOpenNewAuthorDialog(false); // Close modal
-      setNewAuthorError(null); // Reset error
+      setOpenNewAuthorDialog(false);
+      setNewAuthorError(null);
 
     } catch (err: any) {
       console.error("Error creating new author:", err);
@@ -168,7 +194,6 @@ const AddBookPage: React.FC = () => {
     }
   };
 
-  // Function to handle creating a new genre
   const handleCreateNewGenre = async () => {
     setNewGenreLoading(true);
     setNewGenreError(null);
@@ -180,14 +205,13 @@ const AddBookPage: React.FC = () => {
     }
 
     try {
-      // Use service to create genre
       const newGenre: GenreDto = await createGenre({ name: newGenreName });
       setAvailableGenres((prevGenres) => [...prevGenres, newGenre]);
       setSelectedGenreIds((prevIds) => [...prevIds, newGenre.id]);
 
-      setNewGenreName(''); // Reset input field
-      setOpenNewGenreDialog(false); // Close modal
-      setNewGenreError(null); // Reset error
+      setNewGenreName('');
+      setOpenNewGenreDialog(false);
+      setNewGenreError(null);
 
     } catch (err: any) {
       console.error("Error creating new genre:", err);
@@ -201,9 +225,7 @@ const AddBookPage: React.FC = () => {
     }
   };
 
-  // Function to handle genre checkbox change
   const handleGenreCheckboxChange = (genreId: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(`Checkbox for Genre ID ${genreId} changed. Checked: ${event.target.checked}`); // LOG
     if (event.target.checked) {
       setSelectedGenreIds((prevSelected) => [...prevSelected, genreId]);
     } else {
@@ -211,15 +233,31 @@ const AddBookPage: React.FC = () => {
     }
   };
 
-  // Book form submission function
+  // Book form submission function (for updating)
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    // MODIFIED: Moved parsedBookId here
+    const parsedBookId = Number(bookId);
+    console.log("EditBookPage: Parsed bookId (Number) at handleSubmit start:", parsedBookId); // DEBUG LOG for handleSubmit
 
     setLoading(true);
     setError(null);
     setSuccess(null);
 
-    if (!title || selectedAuthors.length === 0) {
+    if (!bookId) { // Keep this check for the string bookId
+      setError("Book ID is missing for update operation.");
+      setLoading(false);
+      return;
+    }
+
+    if (isNaN(parsedBookId)) { // Add check for NaN after parsing
+      setError("Invalid Book ID format for update.");
+      setLoading(false);
+      return;
+    }
+
+    if (!title || selectedAuthors.length === 0) { // ISBN is optional now
       setError("Title and at least one Author are required.");
       setLoading(false);
       return;
@@ -227,44 +265,32 @@ const AddBookPage: React.FC = () => {
 
     const authorIdsToSend = selectedAuthors.map(author => author.authorId);
 
-    const bookData: CreateBookDto = {
+    const bookData: UpdateBookDto = { // Use UpdateBookDto
       title,
-      ...(isbn && { isbn }),
+      isbn: isbn === '' ? null : isbn, // Send null if empty
       authorIds: authorIdsToSend,
-      ...(description && { description }),
-      ...(publicationYear && { publicationYear: Number(publicationYear) }),
-      ...(language && { language }),
-      ...(imageUrl && { imageUrl }),
-      ...(selectedGenreIds.length > 0 && { genreIds: selectedGenreIds }),
+      description: description === '' ? null : description, // Send null if empty
+      publicationYear: publicationYear === '' ? null : Number(publicationYear), // Send null if empty
+      language: language === '' ? null : language,
+      imageUrl: imageUrl === '' ? null : imageUrl,
+      genreIds: selectedGenreIds.length > 0 ? selectedGenreIds : undefined, // Send undefined if empty to avoid empty array
     };
 
     try {
-      // Use service to create book
-      await createBook(bookData);
-      setSuccess("Book added successfully!");
-      console.log("Book added successfully:", bookData);
+      await updateBook(parsedBookId, bookData); // Use parsedBookId here
+      setSuccess("Book updated successfully!");
+      console.log("Book updated successfully:", bookData);
 
-      // Reset form
-      setTitle('');
-      setDescription('');
-      setPublicationYear('');
-      setLanguage('');
-      setImageUrl('');
-      setIsbn('');
-      setSelectedAuthors([]);
-      setSelectedGenreIds([]);
-
-      // Optional: Redirect after a short delay
       setTimeout(() => {
-        navigate('/');
+        navigate(`/books/${bookId}`); // Redirect to the book's detail page
       }, 2000);
 
     } catch (err: any) {
-      console.error("Error adding book:", err);
+      console.error("Error updating book:", err);
       if (err instanceof AuthError) {
         handleLogout(err.message);
       } else {
-        setError(err.message || "An unexpected error occurred while adding the book.");
+        setError(err.message || "An unexpected error occurred while updating the book.");
       }
     } finally {
       setLoading(false);
@@ -275,17 +301,17 @@ const AddBookPage: React.FC = () => {
   if (!isAuthenticated) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 64px)', p: 3 }}>
-        <Alert severity="error">You must be logged in to add a book.</Alert>
+        <Alert severity="error">You must be logged in to edit a book.</Alert>
       </Box>
     );
   }
 
-  // Display loading for initial data (authors/genres)
+  // Display loading for initial data (book, authors, genres)
   if (dataLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 64px)' }}>
         <CircularProgress sx={{ color: 'var(--primary-dark)' }} />
-        <Typography sx={{ ml: 1, color: 'var(--text-dark)' }}>Loading form data...</Typography>
+        <Typography sx={{ ml: 1, color: 'var(--text-dark)' }}>Loading book data for editing...</Typography>
       </Box>
     );
   }
@@ -329,13 +355,13 @@ const AddBookPage: React.FC = () => {
         }}
       >
         <Typography variant="h4" component="h1" gutterBottom sx={{ color: 'var(--primary-dark)', textAlign: 'center', mb: 2 }}>
-          Add New Book
+          Edit Book
         </Typography>
         <Typography variant="body1" sx={{ color: 'var(--text-dark)', textAlign: 'center', mb: 3 }}>
-          Fill in the details to add a new book to the collection.
+          Modify the details of the existing book.
         </Typography>
 
-        {/* Text fields */}
+        {/* Text fields - Pre-filled with existing book data */}
         <TextField
           label="Title"
           variant="outlined"
@@ -352,6 +378,7 @@ const AddBookPage: React.FC = () => {
           fullWidth
           value={isbn}
           onChange={(e) => setIsbn(e.target.value)}
+          // ISBN is now optional, no 'required' prop here
           sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px', backgroundColor: 'var(--background-light)' } }}
           disabled={loading}
         />
@@ -466,7 +493,6 @@ const AddBookPage: React.FC = () => {
               justifyContent: 'flex-start',
             }}>
               {availableGenres.map((genre) => {
-                console.log(`Rendering Genre Checkbox: ID=${genre.id}, Name=${genre.name}`);
                 return (
                   <FormControlLabel
                     key={genre.id}
@@ -516,7 +542,7 @@ const AddBookPage: React.FC = () => {
         {loading && (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 1 }}>
             <CircularProgress size={20} sx={{ color: 'var(--primary-dark)' }} />
-            <Typography sx={{ ml: 1, color: 'var(--text-dark)' }}>Adding book...</Typography>
+            <Typography sx={{ ml: 1, color: 'var(--text-dark)' }}>Saving changes...</Typography>
           </Box>
         )}
         {error && <Alert severity="error">{error}</Alert>}
@@ -535,11 +561,11 @@ const AddBookPage: React.FC = () => {
           }}
           disabled={loading}
         >
-          Add Book
+          Save Changes
         </Button>
         <Button
           fullWidth
-          onClick={() => navigate('/')}
+          onClick={() => navigate(`/books/${bookId}`)} // Navigate back to book detail page
           sx={{
             color: 'var(--primary-dark)',
             border: '1px solid var(--primary-light)',
@@ -633,4 +659,4 @@ const AddBookPage: React.FC = () => {
   );
 };
 
-export default AddBookPage;
+export default EditBookPage;
