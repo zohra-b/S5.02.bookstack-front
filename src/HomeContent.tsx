@@ -75,7 +75,7 @@ const HomeContent: React.FC = () => {
 
         // Fetch all genres for the filter dropdown
         const genresData = await getAllGenres();
-        setAvailableGenres(genresData.map(genre => genre.name)); 
+        setAvailableGenres(genresData && Array.isArray(genresData) ? genresData.map(genre => genre.name) : []);
 
       } catch (err: any) {
         console.error("Error loading initial data:", err);
