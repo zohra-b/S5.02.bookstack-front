@@ -1,138 +1,54 @@
-import React, { useState, useEffect } from 'react';
-import {useNavigate } from 'react-router-dom';
-import AppRoutes from './routes/AppRoutes';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import Header from './components/Header';
 import LoginModal from './components/LoginModal';
 
-import { Typography, CircularProgress, Alert } from '@mui/material';
 
-// Composant principal de l'application, Gère la structure globale de l'application et le routage.
-function App() {
-  const navigate = useNavigate();
+// Importation du composant de routes centralisé
+import AppRoutes from './routes/AppRoutes';
 
-  // États pour gérer l'authentification de l'utilisateur
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [userName, setUsername] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [currentLoggedInUserId, setCurrentLoggedInUserId] = useState<string | null>(null);
+import { AuthProvider, useAuth } from './contexts/authContext';
 
-  // useEffect pour vérifier l'état de connexion au chargement de l'application
-  useEffect(() => {
-    const token = localStorage.getItem('jwtToken');
-    const storedUsername = localStorage.getItem('userName');
-    const storedUserRole = localStorage.getItem('userRole');
-    const storedUserId = localStorage.getItem('userId');
-
-    if (token && storedUsername && storedUserRole && storedUserId) {
-      setIsAuthenticated(true);
-      setUsername(storedUsername);
-      setUserRole(storedUserRole);
-      setCurrentLoggedInUserId(storedUserId);
-    }
-  }, []);
-
-  // État pour contrôler l'ouverture/fermeture de la modale de connexion
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+function AppContent() {
+  const { isAuthenticated, userName, userRole, currentLoggedInUserId, login, logout } = useAuth();
+  const navigate = useNavigate(); 
 
   // Fonctions pour ouvrir et fermer la modale de connexion
-  const handleOpenLoginModal = () => setIsLoginModalOpen(true);
+  const handleOpenLoginModal = () => {
+      setIsLoginModalOpen(true);
+  };
   const handleCloseLoginModal = () => setIsLoginModalOpen(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false); // État de la modale de login
 
   // Fonction appelée en cas de succès de connexion depuis LoginModal
-  const handleLoginSuccess = (token: string, userId: number, fetchedUsername?: string, fetchedUserRole?: string) => {
-    if (fetchedUsername) {
-      setUsername(fetchedUsername);
-      localStorage.setItem('userName', fetchedUsername);
-    } else {
-      const userEmail = localStorage.getItem('userEmail');
-      setUsername(userEmail || `User ${userId}`);
-      localStorage.setItem('userName', userEmail || `User ${userId}`);
-    }
-    if (fetchedUserRole) {
-      setUserRole(fetchedUserRole);
-      localStorage.setItem('userRole', fetchedUserRole);
-    } else {
-      setUserRole('ROLE_USER');
-      localStorage.setItem('userRole', 'ROLE_USER');
-    }
-
-    localStorage.setItem('jwtToken', token);
-    localStorage.setItem('userId', userId.toString());
-    setCurrentLoggedInUserId(userId.toString());
-
-    setIsAuthenticated(true);
-    navigate('/');
+  const handleLoginSuccessFromModal = (token: string, userId: number, fetchedUsername?: string, fetchedUserRole?: string) => {
+    login(token, userId, fetchedUsername, fetchedUserRole); // Utilise la fonction login du contexte
+    setIsLoginModalOpen(false); // Ferme la modale
+    navigate('/'); // Navigue après la connexion réussie
   };
 
-  // Fonction appelée en cas de succès d'enregistrement depuis RegisterPage
-  const handleRegistrationSuccessAndLogin = (token: string, userId: number, fetchedUsername?: string, fetchedUserRole?: string) => { // MODIFIÉ: Ajout de fetchedUserRole
+  // Fonction appelée en cas de succès d'enregistrement depuis RegisterPage. Cette fonction sera passée à AppRoutes puis à RegisterPage
+  const handleRegistrationSuccessAndLogin = (token: string, userId: number, fetchedUsername?: string, fetchedUserRole?: string) => {
     console.log("App.tsx: handleRegistrationSuccessAndLogin called. Attempting to navigate...");
-
-    if (fetchedUsername) {
-      setUsername(fetchedUsername);
-      localStorage.setItem('userName', fetchedUsername);
-    } else {
-      const userEmail = localStorage.getItem('userEmail');
-      setUsername(userEmail || `User ${userId}`);
-      localStorage.setItem('userName', userEmail || `User ${userId}`);
-    }
-
-    if (fetchedUserRole) { // NOUVEAU: Stocke et définit le rôle
-      setUserRole(fetchedUserRole);
-      localStorage.setItem('userRole', fetchedUserRole);
-    } else {
-      setUserRole('ROLE_USER');
-      localStorage.setItem('userRole', 'ROLE_USER');
-    }
-
-    localStorage.setItem('jwtToken', token);
-    localStorage.setItem('userId', userId.toString());
-    setCurrentLoggedInUserId(userId.toString());
-
-    setIsAuthenticated(true);
-    navigate('/');
+    login(token, userId, fetchedUsername, fetchedUserRole); 
     console.log("Registration successful and user automatically logged in!");
+    navigate('/'); 
   };
 
 
-  // Fonction de déconnexion
-  const handleLogout = () => {
-    localStorage.removeItem('jwtToken');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userEmail');
-    setIsAuthenticated(false);
-    setUsername(null);
-    setUserRole(null);
-    setCurrentLoggedInUserId(null);
-    navigate('/');
-    console.log("User logged out.");
-  };
-
-  // Fonction pour gérer le clic sur le bouton "Register" dans le header
-  const handleRegisterClick = () => {
-    console.log("Register button clicked!");
-    navigate('/register');
-  };
-
-  // Fonction pour gérer le clic sur le bouton "User Management"
-  const handleUserManagementClick = () => {
-    console.log("User Management button clicked!");
-    navigate('/admin/users');
-  };
-
-  // Fonction pour gérer le clic sur "My Books" dans le menu
+  // Fonctions de navigation pour le Header
+  const handleRegisterClick = () => navigate('/register');
+  const handleUserManagementClick = () => navigate('/admin/users');
   const handleMyBooksClick = () => {
-    console.log("My Books button clicked!");
     if (currentLoggedInUserId) {
       navigate(`/my-books/${currentLoggedInUserId}`);
     } else {
       console.warn("User ID not found for 'My Books' navigation.");
-      navigate('/login');
+      navigate('/login'); 
     }
   };
+
 
   return (
     <div style={{ backgroundColor: 'var(--background-light)', minHeight: '100vh' }}>
@@ -143,20 +59,29 @@ function App() {
         currentLoggedInUserId={currentLoggedInUserId}
         onRegisterClick={handleRegisterClick}
         onLoginClick={handleOpenLoginModal}
-        onLogout={handleLogout}
+        onLogout={logout} // Utilise la fonction logout du contexte
         onUserManagementClick={handleUserManagementClick}
         onMyBooksClick={handleMyBooksClick}
-        onAddBookClick={() => navigate('/books/new')} // NOUVEAU: Ajout de la fonction pour ajouter un livre
+        onAddBookClick={() => navigate('/books/new')}
       />
-      
+
+      {/* Rendu du composant AppRoutes, en lui passant la fonction de gestion de l'enregistrement */}
       <AppRoutes onRegistrationSuccessAndLogin={handleRegistrationSuccessAndLogin} />
 
       <LoginModal
         open={isLoginModalOpen}
         onClose={handleCloseLoginModal}
-        onLoginSuccess={handleLoginSuccess}
+        onLoginSuccess={handleLoginSuccessFromModal} 
       />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
