@@ -1,27 +1,24 @@
 import React, { useState } from 'react';
 import { AppBar, Toolbar, Typography, Button, IconButton, Menu, MenuItem } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/authContext';
+
 import MenuIcon from '@mui/icons-material/Menu';
 import AddIcon from '@mui/icons-material/Add';
 
 // Définition des props que le composant Header peut recevoir
 interface HeaderProps {
-  isAuthenticated: boolean; 
-  userName: string | null; 
-  userRole: string | null; 
-  currentLoggedInUserId: string | null;  
-  onRegisterClick: () => void; 
-  onLoginClick: () => void;  
-  onLogout: () => void;     
+  onRegisterClick: () => void;
+  onLoginClick: () => void;
   onUserManagementClick: () => void;
-  onMyBooksClick: () => void;  
-  onAddBookClick: () => void; 
-  
+  onMyBooksClick: () => void;
+  onAddBookClick: () => void;
 }
 
-
-const Header: React.FC<HeaderProps> = ({ isAuthenticated, userName, userRole, currentLoggedInUserId, onRegisterClick, onLoginClick, onLogout, onUserManagementClick,onMyBooksClick,onAddBookClick}) => {
+const Header: React.FC<HeaderProps> = ({ onRegisterClick, onLoginClick, onUserManagementClick, onMyBooksClick, onAddBookClick }) => {
+  const { isAuthenticated, userName, userRole, currentLoggedInUserId, logout } = useAuth();
   const navigate = useNavigate(); // Initialise le hook useNavigate pour obtenir la fonction de navigation
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
 
@@ -34,15 +31,14 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated, userName, userRole, cu
   };
 
   const handleTitleClick = () => {
-    navigate('/'); 
+    navigate('/');
   };
 
-   const handleBookManagementClick = () => {
+  const handleBookManagementClick = () => {
     navigate('/admin/books');
   };
 
   const isAdmin = isAuthenticated && userRole === 'ROLE_ADMIN';
-  const isNormalUser = isAuthenticated && userRole === 'ROLE_USER';
 
   const handleMyProfileClick = () => {
     if (currentLoggedInUserId) {
@@ -53,14 +49,14 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated, userName, userRole, cu
   };
 
   const handleMyBooksMenuClick = () => {
-    handleMenuClose(); 
-    onMyBooksClick(); 
+    handleMenuClose();
+    onMyBooksClick();
   };
 
+  
   return (
     <AppBar position="static" sx={{ backgroundColor: 'var(--primary-dark)' }}>
       <Toolbar>
-        {/* Titre de l'application - Rendu cliquable pour revenir à l'accueil */}
         <Typography
           variant="h6"
           component="div"
@@ -70,21 +66,24 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated, userName, userRole, cu
           Bookstack
         </Typography>
 
-           {isAuthenticated ? (
+        {isAuthenticated ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            {isAdmin && ( 
+            {isAdmin && (
               <Button
                 color="inherit"
-                sx={{ color: 'white', '&:hover': { backgroundColor: 'var(--primary-medium)' } ,
-                border: '1px solid white',
+                sx={{
+                  color: 'white', '&:hover': { backgroundColor: 'var(--primary-medium)' },
+                  border: '1px solid white',
                   borderRadius: '5px',
                   padding: '6px 12px',
-                  fontWeight: 'bold'}}
+                  fontWeight: 'bold'
+                }}
                 onClick={onUserManagementClick}
               >
                 User Management
               </Button>
-            )} {isAdmin && (
+            )}
+            {isAdmin && (
               <Button
                 color="inherit"
                 sx={{
@@ -116,7 +115,7 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated, userName, userRole, cu
               Add New Book
             </Button>
 
-           <IconButton
+            <IconButton
               aria-label="my space menu"
               aria-controls={openMenu ? 'basic-menu' : undefined}
               aria-haspopup="true"
@@ -136,21 +135,23 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated, userName, userRole, cu
                 'aria-labelledby': 'basic-button',
               }}
             >
+
               <MenuItem onClick={handleMyProfileClick}>My Profile</MenuItem>
               <MenuItem onClick={handleMyBooksMenuClick}>My Books</MenuItem>
+
             </Menu>
             <Typography variant="body1" sx={{ color: 'white', fontWeight: 500 }}>
-              Hello, {userName || 'User'} ! 
+              Hello, {userName || 'User'} !
             </Typography>
             <Button
               color="inherit"
               sx={{ color: 'white', '&:hover': { backgroundColor: 'var(--primary-medium)' } }}
-              onClick={onLogout} 
+              onClick={() => logout()}
             >
               Logout
             </Button>
           </div>
-        ) : ( //2e partie de la condition : Affichage des boutons Register et Login si l'utilisateur n'est pas authentifié        
+        ) : (
           <div>
             <Button
               color="inherit"

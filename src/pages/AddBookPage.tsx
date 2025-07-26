@@ -8,11 +8,7 @@ import {
   CircularProgress,
   Alert,
   FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Chip,
-  OutlinedInput,
   Dialog,
   DialogActions,
   DialogContent,
@@ -234,12 +230,12 @@ const AddBookPage: React.FC = () => {
       genreIds: selectedGenreIds, 
     };
 
-    console.log("AddBookPage: Sending bookData to backend:", bookData); // DEBUG LOG: What is being sent
+    
 
     try {
       await createBook(bookData);
       setSuccess("Book added successfully!");
-      console.log("Book added successfully:", bookData);
+      
 
       setTitle('');
       setDescription('');
@@ -312,7 +308,7 @@ const AddBookPage: React.FC = () => {
         onSubmit={handleSubmit}
         sx={{
           width: '100%',
-          maxWidth: 600, // Adapted width for a book form
+          maxWidth: 600, 
           p: 4,
           borderRadius: '8px',
           boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
