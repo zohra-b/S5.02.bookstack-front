@@ -42,10 +42,10 @@ const HomeContent: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      let apiUrl = `${import.meta.env.VITE_API_BASE_URL}/books/cards`;
+      let apiUrl = 'http://localhost:8080/api/books/cards';
       if (keyword) {
-        apiUrl = `${import.meta.env.VITE_API_BASE_URL}/books/search?keyword=${encodeURIComponent(keyword)}`;
-      }
+        apiUrl = `http://localhost:8080/api/books/search?keyword=${encodeURIComponent(keyword)}`;
+      } 
 
       const response = await fetch(apiUrl);
 
