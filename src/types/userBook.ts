@@ -1,6 +1,4 @@
 
-import type { GenreDto } from './genre'; // Import GenreDto
-
 export interface UserSummaryDto {
   userId: number;
   userName: string;

@@ -12,7 +12,6 @@ import BookDetailPage from '../pages/BookDetailPage';
 import UserBookDetailPage from '../pages/UserBookDetailPage';
 import EditBookPage from '../pages/EditBookPage';
 
-import type { UserLoginSuccessData } from '../types/user';
 
 interface AppRoutesProps {
   onRegistrationSuccessAndLogin: (token: string, userId: number, fetchedUsername?: string, fetchedUserRole?: string) => void;

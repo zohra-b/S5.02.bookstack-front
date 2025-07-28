@@ -1,7 +1,3 @@
-// src/main.tsx
-// C'est le point d'entrée de votre application Vite React.
-// C'est ici que l'application est rendue dans le navigateur.
-
 import React from 'react'; // Importe la bibliothèque React
 import ReactDOM from 'react-dom/client'; // Importe les outils pour interagir avec le DOM (HTML)
 import App from './App.tsx'; // Importe votre composant principal App

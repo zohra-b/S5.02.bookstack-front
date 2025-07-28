@@ -80,7 +80,7 @@ const BookDetailPage: React.FC = () => {
     try {
       const exists = await checkIfBookInUserList(userId, bookId);
       setIsBookAlreadyInList(exists);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to check if book is in user list:", err);
       setIsBookAlreadyInList(false);
     }
@@ -113,9 +113,15 @@ const BookDetailPage: React.FC = () => {
             checkBookStatusInList(parseInt(currentLoggedInUserId), parseInt(bookId));
         }
 
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error fetching book details:", err);
-        setError(`Failed to load book details: ${err.message}. Please ensure the backend endpoint is correct and accessible.`);
+        setError(
+          `Failed to load book details: ${
+            typeof err === 'object' && err !== null && 'message' in err
+              ? (err as { message: string }).message
+              : String(err)
+          }. Please ensure the backend endpoint is correct and accessible.`
+        );
       } finally {
         setLoading(false);
       }
@@ -159,13 +165,26 @@ const BookDetailPage: React.FC = () => {
       setIsAddModalOpen(false);
       alert('Book successfully added !');
       setIsBookAlreadyInList(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error adding book to user list:", err);
-      if (err.message && err.message.includes('409')) {
+      if (
+        typeof err === 'object' &&
+        err !== null &&
+        'message' in err &&
+        typeof (err as { message: string }).message === 'string' &&
+        (err as { message: string }).message.includes('409')
+      ) {
         setAddError("This book is already in your list.");
         setIsBookAlreadyInList(true);
+      } else if (
+        typeof err === 'object' &&
+        err !== null &&
+        'message' in err &&
+        typeof (err as { message?: string }).message === 'string'
+      ) {
+        setAddError(`Failed to add the book : ${(err as { message: string }).message}`);
       } else {
-        setAddError(`Failed to add the book : ${err.message}`);
+        setAddError("Failed to add the book due to an unknown error.");
       }
     } finally {
       setIsAdding(false);

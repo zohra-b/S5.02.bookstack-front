@@ -24,14 +24,14 @@ const handleApiResponse = async (response: Response): Promise<unknown> => {
     try {
       const errorJson = JSON.parse(errorBody);
       errorMessage = errorJson.message || errorJson.error || errorMessage;
-    } catch (e) {
+    } catch {
       // Fallback to raw text if JSON parsing fails
     }
     throw new Error(errorMessage);
   }
   try {
     return await response.json();
-  } catch (e) {
+  } catch {
     return null; // No JSON content (e.g., for successful DELETE)
   }
 };
@@ -52,7 +52,7 @@ export const createGenre = async (genreData: CreateGenreDto): Promise<GenreDto> 
     headers: getAuthHeaders(), // Authentication required for creation
     body: JSON.stringify(genreData),
     });
-    return handleApiResponse(response) as Promise<GenreDto[]>;
+    return handleApiResponse(response) as Promise<GenreDto>;
   } catch (err: unknown) {
     if (err instanceof AuthError) {
       throw err;

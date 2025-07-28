@@ -1,4 +1,3 @@
-// src/pages/UserManagementPage.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Typography,
@@ -25,9 +24,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import SwapCallsIcon from '@mui/icons-material/SwapCalls';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom';
-//import { useAuth } from '../hooks/useAuth'; // NOUVEAU: Importation du hook useAuth
 
-// Interface pour les données utilisateur (à adapter selon votre UserDto du backend)
 interface UserData {
   userId: number;
   userName: string;
@@ -37,7 +34,6 @@ interface UserData {
 
 const UserManagementPage: React.FC = () => {
   const navigate = useNavigate();
-  //const { handleLogout } = useAuth(); // NOUVEAU: Utilisation du hook useAuth
 
 
   const [users, setUsers] = useState<UserData[]>([]);
@@ -45,7 +41,6 @@ const UserManagementPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [filterRole, setFilterRole] = useState<string>('all');
 
-  // États pour le dialogue de confirmation
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [selectedUserForAction, setSelectedUserForAction] = useState<UserData | null>(null);
   const [actionType, setActionType] = useState<'toggleRole' | 'delete' | null>(null);
@@ -91,7 +86,7 @@ const handleLogout = useCallback((message?: string) => {
 
       if (response.status === 401) { 
         handleLogout("Your session has expired. Please login.");
-        return; // Arrête l'exécution de la fonction ici
+        return; 
       }
 
       if (!response.ok) {
@@ -100,7 +95,7 @@ const handleLogout = useCallback((message?: string) => {
         try {
           const errorJson = JSON.parse(errorText);
           parsedError = errorJson.message || errorJson.error || parsedError;
-        } catch (e) {
+        } catch  {
           // Fallback to raw text if JSON parsing fails
         }
         throw new Error(parsedError);
@@ -114,10 +109,10 @@ const handleLogout = useCallback((message?: string) => {
     } finally {
       setLoading(false);
     }
-  }, [filterRole, handleLogout]); // MODIFIÉ: Ajout de handleLogout dans les dépendances
+  }, [filterRole, handleLogout]); 
 
   useEffect(() => {
-    if (isCurrentUserAdmin) { // Seuls les admins peuvent charger cette page
+    if (isCurrentUserAdmin) { 
       fetchUsers();
     } else {
       setLoading(false);
@@ -125,7 +120,7 @@ const handleLogout = useCallback((message?: string) => {
     }
   }, [fetchUsers, isCurrentUserAdmin]);
 
-  // Fonctions pour gérer les actions de l'utilisateur (Toggle Role, Delete)
+  
   const handleOpenConfirmDialog = (user: UserData, type: 'toggleRole' | 'delete') => {
     setSelectedUserForAction(user);
     setActionType(type);
@@ -174,7 +169,7 @@ const handleLogout = useCallback((message?: string) => {
 
       if (response.status === 401) { 
         handleLogout("Your session has expired. Please login.");
-        return; // Arrête l'exécution de la fonction ici
+        return; 
       }
 
       if (!response.ok) {
@@ -183,7 +178,7 @@ const handleLogout = useCallback((message?: string) => {
         try {
           const errorJson = JSON.parse(errorText);
           parsedError = errorJson.message || errorJson.error || parsedError;
-        } catch (e) {
+        } catch {
           // Fallback to raw text if JSON parsing fails
         }
         throw new Error(parsedError);
@@ -191,7 +186,7 @@ const handleLogout = useCallback((message?: string) => {
 
       // Re-fetch users after successful action
       await fetchUsers();
-      handleCloseConfirmDialog(); // Close dialog on success
+      handleCloseConfirmDialog(); 
     } catch (err: any) {
       console.error(`Error during ${actionType} action:`, err);
       setActionError(err.message || `An error occurred during ${actionType} action.`);
@@ -200,10 +195,9 @@ const handleLogout = useCallback((message?: string) => {
     }
   };
 
-  //Gérer la modification  navigue vers la page users/edit
+  
   const handleEditUser = (user: UserData) => {
     console.log("Navigating to edit user:", user.userId);
-    // Navigue vers une route d'édition spécifique à l'utilisateur
     navigate(`/admin/users/edit/${user.userId}`);
   };
 
@@ -267,7 +261,7 @@ const handleLogout = useCallback((message?: string) => {
         </Alert>
       )}
 
-      {actionError && ( // NOUVEAU: Affichage de l'erreur spécifique à l'action
+      {actionError && ( 
         <Alert severity="error" sx={{ mt: 2 }}>
           {actionError}
         </Alert>
@@ -305,18 +299,18 @@ const handleLogout = useCallback((message?: string) => {
                   <TableCell sx={{ color: 'var(--text-dark)' }}>{user.userName}</TableCell>
                   <TableCell sx={{ color: 'var(--text-dark)' }}>{user.email}</TableCell>
                   <TableCell sx={{ color: 'var(--text-dark)' }}>{user.role}</TableCell>
-                  {isCurrentUserAdmin && ( // NOUVEAU: Boutons d'action visibles seulement pour les admins
+                  {isCurrentUserAdmin && ( 
                     <TableCell>
-                      {/* Bouton Modifier (placeholder pour l'instant) */}
+                     
                       <IconButton
                         aria-label="edit"
                         color="primary"
                         onClick={() => handleEditUser(user)}
-                        disabled={loading} // Désactive les boutons pendant le chargement
+                        disabled={loading} 
                       >
                         <EditIcon />
                       </IconButton>
-                      {/* Bouton Changer de rôle */}
+                     
                       <IconButton
                         aria-label="toggle role"
                         color="secondary"
@@ -325,7 +319,7 @@ const handleLogout = useCallback((message?: string) => {
                       >
                         <SwapCallsIcon />
                       </IconButton>
-                      {/* Bouton Supprimer */}
+                      
                       <IconButton
                         aria-label="delete"
                         color="error"
@@ -343,7 +337,7 @@ const handleLogout = useCallback((message?: string) => {
         </TableContainer>
       )}
 
-      {/* NOUVEAU: Dialogue de confirmation pour les actions */}
+      
       <Dialog
         open={openConfirmDialog}
         onClose={handleCloseConfirmDialog}
@@ -359,7 +353,7 @@ const handleLogout = useCallback((message?: string) => {
               ? `Are you sure you want to toggle the role for user "${selectedUserForAction?.userName}" (${selectedUserForAction?.email})? Their current role is "${selectedUserForAction?.role}".`
               : `Are you sure you want to permanently delete user "${selectedUserForAction?.userName}" (${selectedUserForAction?.email})? This action cannot be undone.`}
           </DialogContentText>
-          {actionError && ( // Affiche l'erreur spécifique à l'action dans le dialogue
+          {actionError && ( 
             <Alert severity="error" sx={{ mt: 2 }}>
               {actionError}
             </Alert>

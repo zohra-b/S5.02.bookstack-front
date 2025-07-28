@@ -1,4 +1,3 @@
-// src/pages/BookManagementPage.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -27,7 +26,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add'; // Icône pour ajouter un livre
 import SearchIcon from '@mui/icons-material/Search'; // Icône pour la recherche
-//import { useAuth } from '@/hooks/useAuth';
+
 
 // Interface pour BookDto (doit correspondre à votre BookDto du backend)
 interface BookDto {
@@ -38,8 +37,7 @@ interface BookDto {
   description: string;
   imageUrl: string | null;
   isbn: string;
-  // Note: Les genres et auteurs détaillés ne sont pas dans BookDto, mais dans Book.java
-  // Si vous voulez les afficher, il faudra un DTO plus riche ou un appel API par livre.
+ 
 }
 
 const BookManagementPage: React.FC = () => {
@@ -70,8 +68,7 @@ const BookManagementPage: React.FC = () => {
     }
     navigate('/login', { state: { message: message || "You have been logged out." } });
   }, [navigate]); 
-  // Fonction pour récupérer les livres, avec support de la recherche
-  // Elle prend maintenant le mot-clé en argument et est stable (dépendances vides pour useCallback)
+ 
   const fetchBooks = useCallback(async (keyword: string) => {
     setLoading(true);
     setError(null);
@@ -83,8 +80,8 @@ const BookManagementPage: React.FC = () => {
         return;
       }
 
-      let apiUrl = 'http://localhost:8080/api/books'; // Endpoint par défaut pour tous les livres
-      if (keyword) { // Utilise le mot-clé passé en argument
+      let apiUrl = 'http://localhost:8080/api/books'; 
+      if (keyword) { 
         apiUrl = `http://localhost:8080/api/books/search?keyword=${encodeURIComponent(keyword)}`;
       }
 
@@ -107,7 +104,7 @@ const BookManagementPage: React.FC = () => {
         try {
           const errorJson = JSON.parse(errorText);
           parsedError = errorJson.message || errorJson.error || parsedError;
-        } catch (e) {
+        } catch {
           // Fallback to raw text if JSON parsing fails
         }
         throw new Error(parsedError);
@@ -115,9 +112,13 @@ const BookManagementPage: React.FC = () => {
 
       const data: BookDto[] = await response.json();
       setBooks(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching books:", err);
-      setError(`Failed to load books: ${err.message}. Ensure you are logged in as an ADMIN and the backend is running.`);
+      setError(
+        `Failed to load books: ${
+          err instanceof Error ? err.message : String(err)
+        }. Ensure you are logged in as an ADMIN and the backend is running.`
+      );
     } finally {
       setLoading(false);
     }
@@ -131,25 +132,24 @@ const BookManagementPage: React.FC = () => {
       setLoading(false);
       setError("Access Denied. You must be an administrator to view this page.");
     }
-  }, [fetchBooks, isCurrentUserAdmin]); // Dépend de fetchBooks (qui est stable) et isCurrentUserAdmin
+  }, [fetchBooks, isCurrentUserAdmin]); 
 
   // useEffect pour le débouncing du terme de recherche
   useEffect(() => {
-    // Définit un délai avant d'appeler la fonction de recherche
-    const handler = setTimeout(() => {
-      if (isCurrentUserAdmin) { // S'assure que l'utilisateur est admin avant de lancer la recherche
-        fetchBooks(searchTerm); // Appelle la recherche avec le terme actuel
+    
+    const handler = setTimeout(() => {// Définit un délai avant d'appeler la fonction de recherche
+      if (isCurrentUserAdmin) { 
+        fetchBooks(searchTerm); 
       }
-    }, 300); // Délai de 300ms (vous pouvez ajuster cette valeur)
+    }, 300); // Délai de 300ms 
 
-    // Fonction de nettoyage: si searchTerm change avant la fin du délai,
-    // le timeout précédent est annulé pour éviter des appels API inutiles.
+    
     return () => {
       clearTimeout(handler);
     };
   }, [searchTerm, fetchBooks, isCurrentUserAdmin]); // L'effet se réexécute lorsque searchTerm, fetchBooks ou isCurrentUserAdmin change
 
-  // Gérer la suppression d'un livre
+  
   const handleDeleteBook = async () => {
     if (!selectedBookForDeletion) return;
 
@@ -168,7 +168,7 @@ const BookManagementPage: React.FC = () => {
         },
       });
 
-      if (response.status === 401) { // NOUVEAU: Gère l'expiration du token
+      if (response.status === 401) { 
         handleLogout("Your session has expired. Please login.");
         return;
       }
@@ -179,7 +179,7 @@ const BookManagementPage: React.FC = () => {
         try {
           const errorJson = JSON.parse(errorText);
           parsedError = errorJson.message || errorJson.error || parsedError;
-        } catch (e) {
+        } catch {
           // Fallback to raw text if JSON parsing fails
         }
         throw new Error(parsedError);
@@ -189,25 +189,26 @@ const BookManagementPage: React.FC = () => {
       await fetchBooks(''); // Appelle fetchBooks avec une chaîne vide pour recharger tous les livres
       setOpenConfirmDialog(false); // Close dialog on success
       setSelectedBookForDeletion(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error deleting book:", err);
-      setActionError(err.message || "An unexpected error occurred during deletion.");
+      setActionError(
+        err instanceof Error
+          ? err.message
+          : "An unexpected error occurred during deletion."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  // Navigation vers la page d'ajout de livre
   const handleAddBook = () => {
     navigate('/admin/books/new');
   };
 
-  // Navigation vers la page d'édition de livre
   const handleEditBook = (bookId: number) => {
     navigate(`/admin/books/edit/${bookId}`);
   };
 
-  // Rendu conditionnel si l'utilisateur n'est pas admin
   if (!isCurrentUserAdmin) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 64px)', p: 3 }}>

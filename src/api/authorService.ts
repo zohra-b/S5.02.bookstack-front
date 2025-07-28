@@ -16,7 +16,7 @@ const getAuthHeaders = () => {
 };
 
 // Utility function to handle HTTP responses and errors (re-used from userBookService)
-const handleApiResponse = async (response: Response): Promise<any> => {
+const handleApiResponse = async (response: Response): Promise<unknown> => {
   if (response.status === 401) {
     throw new AuthError("Your session has expired. Please log in.");
   }
@@ -26,14 +26,14 @@ const handleApiResponse = async (response: Response): Promise<any> => {
     try {
       const errorJson = JSON.parse(errorBody);
       errorMessage = errorJson.message || errorJson.error || errorMessage;
-    } catch (e) {
+    } catch {
       // Fallback to raw text if JSON parsing fails
     }
     throw new Error(errorMessage);
   }
   try {
     return await response.json();
-  } catch (e) {
+  } catch {
     return null; // No JSON content (e.g., for successful DELETE)
   }
 };
@@ -43,7 +43,7 @@ export const getAllAuthors = async (): Promise<AuthorDto[]> => {
     method: 'GET',
     headers: getAuthHeaders(),
   });
-  return handleApiResponse(response);
+  return handleApiResponse(response) as Promise<AuthorDto[]>;
 };
 
 
@@ -53,6 +53,6 @@ export const createAuthor = async (authorData: CreateAuthorDto): Promise<AuthorD
     headers: getAuthHeaders(),
     body: JSON.stringify(authorData),
   });
-  return handleApiResponse(response);
+  return handleApiResponse(response) as Promise<AuthorDto>;
 };
 

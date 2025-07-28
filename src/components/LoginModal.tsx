@@ -3,7 +3,7 @@ import { Modal, Box, Typography, TextField, Button, CircularProgress, Alert } fr
 
 // Styles pour la boîte de la modale (positionnement et apparence)
 const style = {
-  position: 'absolute' as 'absolute',
+  position: 'absolute' as const,
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
@@ -108,9 +108,13 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLoginSuccess }
         onClose();
       }, 2000); // Délai de cloture apres msg de succes
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Login error:", err);
-      setError(err.message || "An unexpected error occurred during login."); // Affiche le message d'erreur
+      setError(
+        err && typeof err === "object" && "message" in err
+          ? String((err as { message?: unknown }).message)
+          : "An unexpected error occurred during login."
+      ); // Affiche le message d'erreur
     } finally {
       setLoading(false); // Désactive l'indicateur de chargement
     }
