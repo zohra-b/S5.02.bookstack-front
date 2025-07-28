@@ -57,7 +57,8 @@ const EditBookPage: React.FC = () => {
   const [imageUrl, setImageUrl] = useState('');
   const [isbn, setIsbn] = useState('');
   const [selectedAuthors, setSelectedAuthors] = useState<AuthorDto[]>([]);
-  const [selectedGenreIds, setSelectedGenreIds] = useState<number[]>([]);
+  //const [selectedGenreIds, setSelectedGenreIds] = useState<number[]>([]);
+  const [selectedGenre, setSelectedGenre] = useState<GenreDto[]>([]); 
 
   // States for available authors and genres (loaded from backend)
   const [availableAuthors, setAvailableAuthors] = useState<AuthorDto[]>([]);
@@ -131,10 +132,10 @@ const EditBookPage: React.FC = () => {
         setLanguage(bookData.language || '');
         setImageUrl(bookData.imageUrl || '');
         setIsbn(bookData.isbn);
-        setSelectedAuthors(bookData.authors || []); // Pre-fill selected authors
-        setSelectedGenreIds(bookData.genres ? bookData.genres.map(g => g.id) : []); // Pre-fill selected genres
+        setSelectedAuthors(bookData.authors || []); 
+        setSelectedGenre(bookData.genres || []); 
 
-        // Fetch available authors and genres (same as AddBookPage)
+       
         const authorsData = await getAllAuthors();
         setAvailableAuthors(authorsData);
 
@@ -207,7 +208,7 @@ const EditBookPage: React.FC = () => {
     try {
       const newGenre: GenreDto = await createGenre({ name: newGenreName });
       setAvailableGenres((prevGenres) => [...prevGenres, newGenre]);
-      setSelectedGenreIds((prevIds) => [...prevIds, newGenre.id]);
+      setSelectedGenre((prevSelected) => [...prevSelected, newGenre]);
 
       setNewGenreName('');
       setOpenNewGenreDialog(false);
@@ -225,57 +226,70 @@ const EditBookPage: React.FC = () => {
     }
   };
 
-  const handleGenreCheckboxChange = (genreId: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      setSelectedGenreIds((prevSelected) => [...prevSelected, genreId]);
-    } else {
-      setSelectedGenreIds((prevSelected) => prevSelected.filter((id) => id !== genreId));
-    }
-  };
+  const handleGenreCheckboxChange = (genre: GenreDto) => (event: React.ChangeEvent<HTMLInputElement>) => {
+  if (event.target.checked) {
+    setSelectedGenre((prevSelected) => {
+      if (prevSelected.some(g => g.id === genre.id)) {
+        return prevSelected; 
+      }
+      return [...prevSelected, genre];
+    });
+  } else {
+    setSelectedGenre((prevSelected) => prevSelected.filter(g => g.id !== genre.id));
+  }
+};
 
-  // Book form submission function (for updating)
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     // MODIFIED: Moved parsedBookId here
     const parsedBookId = Number(bookId);
-    console.log("EditBookPage: Parsed bookId (Number) at handleSubmit start:", parsedBookId); // DEBUG LOG for handleSubmit
+    console.log("EditBookPage: Parsed bookId (Number) at handleSubmit start:", parsedBookId); 
 
     setLoading(true);
     setError(null);
     setSuccess(null);
 
-    if (!bookId) { // Keep this check for the string bookId
+    if (!bookId) {
       setError("Book ID is missing for update operation.");
       setLoading(false);
       return;
     }
 
-    if (isNaN(parsedBookId)) { // Add check for NaN after parsing
+    if (isNaN(parsedBookId)) { 
       setError("Invalid Book ID format for update.");
       setLoading(false);
       return;
     }
 
-    if (!title || selectedAuthors.length === 0) { // ISBN is optional now
+    if (!title || selectedAuthors.length === 0) { 
       setError("Title and at least one Author are required.");
       setLoading(false);
       return;
     }
 
-    const authorIdsToSend = selectedAuthors.map(author => author.authorId);
+    //const authorIdsToSend = selectedAuthors.map(author => author.authorId);
+    const authorIdsToSend = selectedAuthors
+      .map(author => author.authorId)
+      .filter((id): id is number => id !== null && id !== undefined);
 
-    const bookData: UpdateBookDto = { // Use UpdateBookDto
+    const genreIdsToSend = selectedGenre
+  .map((genre) => genre.id)
+  .filter((id): id is number => id !== undefined && id !== null);
+
+    const bookData: UpdateBookDto = { 
       title,
-      isbn: isbn === '' ? null : isbn, // Send null if empty
+      isbn: isbn === '' ? null : isbn, 
       authorIds: authorIdsToSend,
-      description: description === '' ? null : description, // Send null if empty
-      publicationYear: publicationYear === '' ? null : Number(publicationYear), // Send null if empty
+      description: description === '' ? null : description, 
+      publicationYear: publicationYear === '' ? null : Number(publicationYear), 
       language: language === '' ? null : language,
       imageUrl: imageUrl === '' ? null : imageUrl,
-      genreIds: selectedGenreIds.length > 0 ? selectedGenreIds : undefined, // Send undefined if empty to avoid empty array
+      genreIds: genreIdsToSend.length > 0 ? genreIdsToSend : undefined,
+      
     };
-
+    console.log("EditBookPage: Book data to update:", bookData); // DEBUG LOG 4
     try {
       await updateBook(parsedBookId, bookData); // Use parsedBookId here
       setSuccess("Book updated successfully!");
@@ -297,7 +311,7 @@ const EditBookPage: React.FC = () => {
     }
   };
 
-  // Redirect if user is not authenticated
+  
   if (!isAuthenticated) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 64px)', p: 3 }}>
@@ -306,7 +320,7 @@ const EditBookPage: React.FC = () => {
     );
   }
 
-  // Display loading for initial data (book, authors, genres)
+  
   if (dataLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 64px)' }}>
@@ -498,8 +512,8 @@ const EditBookPage: React.FC = () => {
                     key={genre.id}
                     control={
                       <Checkbox
-                        checked={selectedGenreIds.includes(genre.id)}
-                        onChange={handleGenreCheckboxChange(genre.id)}
+                        checked={selectedGenre.some(g => g.id === genre.id)}
+                        onChange={handleGenreCheckboxChange(genre)}
                         name={genre.name}
                         sx={{ color: 'var(--primary-dark)' }}
                       />

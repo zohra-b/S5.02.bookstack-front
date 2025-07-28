@@ -1,5 +1,3 @@
-// src/types/genre.ts
-
 export interface GenreDto {
   id: number;
   name: string;
