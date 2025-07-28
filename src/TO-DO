@@ -1,10 +1,15 @@
 -- WHEN A BOOK IS ALREADY IN THE USERLIST, REPLACE THE ADD BUTTON BY TEXT "ALREADY IN YOUR BOOKS"
 -- when adding a book to the list, if already in the list : error message
 -- WHEN ADDING A BOOK IN LIST, REDIRECT USER TO HOMEPAGE
+
 -- when adding a book in BOOKSTACK, redirect user to BOOK DETAIL PAGE
 
+
+
+-- ADMIN . AFTER MODIFYING A BOOK, REDIRECTED TO HOME - SHOULD BE REDIRECTED TO BOOK MAGAMENT PAGE
+
  
-- update genre and update authors still doesnt work
+-- update genre and update authors still doesnt work
  
  
  
