@@ -22,8 +22,7 @@ export interface CreateBookDto {
   genreIds?: number[];
 }
 
-// DTO for updating a book (for EditBookPage)
-// All fields are optional as it's a PATCH request
+
 export interface UpdateBookDto {
   title?: string;
   description?: string | null; // Allow null to clear description

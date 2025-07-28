@@ -41,11 +41,11 @@ const HomeContent: React.FC = () => {
   const fetchBookCards = useCallback(async (keyword: string) => {
     setLoading(true);
     setError(null);
-    try {
-      let apiUrl = 'http://localhost:8080/api/books/cards';
-      if (keyword) {
-        apiUrl = `http://localhost:8080/api/books/search?keyword=${encodeURIComponent(keyword)}`;
-      }
+     try {
+    let apiUrl = `${import.meta.env.VITE_API_BASE_URL}/books/cards`;
+    if (keyword) {
+      apiUrl = `${import.meta.env.VITE_API_BASE_URL}/books/search?keyword=${encodeURIComponent(keyword)}`;
+    }
 
       const response = await fetch(apiUrl);
 
@@ -75,7 +75,9 @@ const HomeContent: React.FC = () => {
 
         // Fetch all genres for the filter dropdown
         const genresData = await getAllGenres();
-        setAvailableGenres(genresData && Array.isArray(genresData) ? genresData.map(genre => genre.name) : []);
+
+         setAvailableGenres(genresData && Array.isArray(genresData) ? genresData.map(genre => genre.name) : []);
+
 
       } catch (err: any) {
         console.error("Error loading initial data:", err);
