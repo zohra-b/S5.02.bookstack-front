@@ -64,9 +64,7 @@ src/
 
 Here are a few visual previews of the app in action:
 
-<p align="center">
-  <img src="public/screenshots/admin_Homepage.png" alt="Admin Homepage preview" width="700"/>
-</p>
+
 
 <p align="center">
   <img src="public/screenshots/bookManagement_page.png" alt="Admin Books Management preview" width="700"/>
