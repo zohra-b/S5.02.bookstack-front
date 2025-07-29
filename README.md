@@ -1,69 +1,36 @@
-# React + TypeScript + Vite
+# 📚 Bookstack – Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[![Vite](https://img.shields.io/badge/Vite-7.0-blueviolet?logo=vite)](https://vitejs.dev/)
+[![React](https://img.shields.io/badge/React-19.1-blue?logo=react)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-Currently, two official plugins are available:
+**Bookstack** is a public-facing web application that allows users to track their reading progress, manage wishlists, rate books, and more. This repository contains the **frontend** part of the application, built with **React** and **TypeScript**, using **Material UI (MUI)** for the UI.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 🚀 Key Features
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- User authentication (login/register)
+- Book listings with details, ratings, and reading status
+- Add/edit/delete books (admin only)
+- Manage reading status (wishlist, to_read, reading, finished)
+- Rating and commenting on books
+- User profile and book management pages
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+## 🧱 Tech Stack
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- **Framework**: React 19 + Vite
+- **Language**: TypeScript
+- **UI Library**: Material UI (MUI)
+- **Routing**: React Router v7
+- **Backend**: Spring Boot REST API (with Swagger)
+- **HTTP**: Axios (via `api/*.ts` services)
+- **Type definitions**: Located in `types/`
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 📁 Project Structure
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
