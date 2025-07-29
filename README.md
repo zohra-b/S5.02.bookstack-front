@@ -58,6 +58,47 @@ src/
 
 ---
 
+---
+
+## 📷 Screenshots
+
+Here are a few visual previews of the app in action:
+
+<p align="center">
+  <img src="public/screenshots/admin_Homepage.png" alt="Admin Homepage preview" width="700"/>
+</p>
+
+<p align="center">
+  <img src="public/screenshots/bookManagement_page.png" alt="Admin Books Management preview" width="700"/>
+</p>
+
+<p align="center">
+  <img src="public/screenshots/user_editUserProfile.png" alt="Edit User profile preview" width="700"/>
+</p>
+
+<p align="center">
+  <img src="public/screenshots/user_booksDetailsPage.png" alt="User book details page preview" width="700"/>
+</p>
+
+> 📝 *Images are located in `public/screenshots/`*
+
+---
+
+## 📦 Installation
+
+### Prerequisites
+
+- Node.js (v18+ recommended)
+- npm or yarn
+
+### Setup
+
+1. **Clone the repository**
+
+```bash
+git clone https://github.com/your-username/bookstack-frontend.git
+cd bookstack-frontend
+
 ## 📦 Installation
 
 ### Prerequisites
