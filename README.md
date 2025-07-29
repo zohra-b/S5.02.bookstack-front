@@ -1,69 +1,114 @@
-# React + TypeScript + Vite
+# 📚 Bookstack – Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[![Vite](https://img.shields.io/badge/Vite-7.0-blueviolet?logo=vite)](https://vitejs.dev/)
+[![React](https://img.shields.io/badge/React-19.1-blue?logo=react)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-Currently, two official plugins are available:
+**Bookstack** is a public-facing web application that allows users to track their reading progress, manage wishlists, rate books, and more. This repository contains the **frontend** part of the application, built with **React** and **TypeScript**, using **Material UI (MUI)** for the UI.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 🚀 Key Features
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- User authentication (login/register)
+- Roles : admin / user
+- Book listings with details, ratings, and reading status
+- Add books / authors / genres (all users)
+- Edit / delete books (admin only)
+- Manage reading status (wishlist, to_read, reading, finished)
+- Rating and commenting on books
+- User profile and book management pages
+- Search books by title / by authors
+- Filter books by genre / by status
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+## 🧱 Tech Stack
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **Framework**: React 19 + Vite
+- **Language**: TypeScript
+- **UI Library**: Material UI (MUI)
+- **Routing**: React Router v7
+- **Backend**: Spring Boot REST API (with Swagger)
+- **HTTP**: Axios (via `api/*.ts` services)
+- **Type definitions**: Located in `types/`
+
+---
+
+## 📁 Project Structure
+
+```
+src/
+├── api/ # API services (Axios)
+├── assets/ # Images, icons, etc.
+├── components/ # Reusable UI components
+├── contexts/ # AuthContext
+├── pages/ # App pages (views)
+├── routes/ # Route definitions
+├── styles/ # Global CSS
+├── types/ # TypeScript interfaces
+├── utils/ # Utility functions
+├── App.tsx # Main app component
+├── HomeContent.tsx 
+├── main.tsx # Entry point
+
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+---
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 📦 Installation
+
+### Prerequisites
+
+- Node.js (v18+ recommended)
+- npm or yarn
+
+### Steps
+
+1. **Clone the repository**
+
+```bash
+git clone https://github.com/your-username/bookstack-frontend.git
+cd bookstack-frontend
+
+
+2. **Install dependencies**
+
+npm install
+# or
+yarn install
+
+3. **Configure the backend API base URL**
+Make sure the API endpoints in the api/*.ts service files point to your backend, e.g.:
+const API_BASE_URL = 'http://localhost:8080/api';
+
+
+4. **Start the development server**
+npm run dev
+# or
+yarn dev
+
+
+## 🔐 Authentication
+Login modal handled in LoginModal.tsx
+Role-based access (user/admin)
+JWT expected from the backend (you may need to implement token handling with Authorization headers)
+
+## 📌 Potential Improvements
+
+Filter books by users rating
+Export personal list
+Dark mode with MUI's theming
+Unit testing with Jest + React Testing Library
+
+## 🤝 Contributing
+Fork the project
+Create your feature branch (git checkout -b feature/AmazingFeature)
+Commit your changes (git commit -m 'Add some feature')
+Push to the branch (git push origin feature/AmazingFeature)
+Open a Pull Request
+
+## 🔗 Recommended Frontend
+For the complete BookStack application, check out the BookStack Back-end Repository : [https://github.com/zohra-b/S5.02.bookstack](https://github.com/zohra-b/S5.02.bookstack)
