@@ -1,20 +1,22 @@
--- WHEN A BOOK IS ALREADY IN THE USERLIST, REPLACE THE ADD BUTTON BY TEXT "ALREADY IN YOUR BOOKS"
--- when adding a book to the list, if already in the list : error message
--- WHEN ADDING A BOOK IN LIST, REDIRECT USER TO HOMEPAGE
+-- 
+-- BUGS : update genre and update authors : when updating, original genres and authors are removed and replaced by the new ones
 
--- when adding a book in BOOKSTACK, redirect user to BOOK DETAIL PAGE
+-- REFACTOR : create components (buttons, forms, etc.) to avoid code duplication
+-- REFACTOR : create a custom hook for form handling to avoid code duplication
 
+--  
+-- REFACTOR : WHEN A BOOK IS ALREADY IN THE USERLIST, REPLACE THE ADD BUTTON BY TEXT "ALREADY IN YOUR BOOKS"
+-- REFACTOR : WHEN ADDING A BOOK TO MY LIST, IF ALREADY IN THE LIST : error message not a system error but a user error
+-- REFACTOR : WHEN ADDING A BOOK IN LIST, REDIRECT USER TO HOMEPAGE
 
+-- REFACTOR : when adding a book in the general BOOKSTACK, redirect user to BOOK DETAIL PAGE
+-- REFACTOR : ADMIN . AFTER MODIFYING A BOOK, REDIRECTED TO HOME - SHOULD BE REDIRECTED TO BOOK MANAGAMENT PAGE
 
--- ADMIN . AFTER MODIFYING A BOOK, REDIRECTED TO HOME - SHOULD BE REDIRECTED TO BOOK MAGAMENT PAGE
+-- NEW FUNCTIONS to create :
+-- VISIT OTHER USER'LISTS 
+-- BOOK CARDS : ADD AVERAGE RATING 
+-- BOOK DETAIL PAGE : add all comments ans ratings from all users
 
- 
--- update genre and update authors still doesnt work
- 
- 
- 
- ++++ AUTHOR SERVICE ++++
- getAuthorById / update / delete author 
- +++++ GENRE SERVICE ++++
- update / delete
+-- ++++ AUTHOR SERVICE : getAuthorById / update / delete author 
+-- +++++ GENRE SERVICE ++++ :  update / delete
 

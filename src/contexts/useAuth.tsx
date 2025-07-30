@@ -1,6 +1,6 @@
 // // src/hooks/useAuth.tsx
 // import { useContext } from 'react';
-// import { AuthContext, type AuthContextType } from './authContext'; // Assurez-vous que AuthContext est en majuscule ici !
+// import { AuthContext, type AuthContextType } from './authContext'; 
 
 // /**
 //  * useAuth is a custom React hook that provides a convenient way for

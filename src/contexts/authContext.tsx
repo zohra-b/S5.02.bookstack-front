@@ -1,5 +1,5 @@
-// src/contexts/AuthContext.tsx
-import React, { createContext, useState, useEffect, useContext, useCallback, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
+import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // Définir l'interface pour le contexte d'authentification
