@@ -18,20 +18,16 @@ interface UserData {
   role: string;
 }
 
-// Interface pour les données de mise à jour de l'utilisateur (doit correspondre à votre UpdateUserDto du backend)
 interface UpdateUserDto {
   userName?: string;
   email?: string;
-  // Ajoutez d'autres champs si votre UpdateUserDto en contient (ex: firstName, lastName)
 }
 
-// Interface pour le DTO de mise à jour du mot de passe (doit correspondre à votre PasswordDto du backend)
 interface PasswordDto {
   newPassword: string;
 }
 
 const UserEditPage: React.FC = () => {
-  // Récupère l'ID de l'utilisateur depuis les paramètres de l'URL
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
 
@@ -43,8 +39,7 @@ const UserEditPage: React.FC = () => {
   // États pour les champs du formulaire de modification de profil
   const [currentUsername, setCurrentUsername] = useState('');
   const [currentEmail, setCurrentEmail] = useState('');
-  // Ajoutez d'autres états si vous avez plus de champs à modifier
-
+  
   // NOUVEAU: États pour les champs du formulaire de modification de mot de passe
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
@@ -58,7 +53,6 @@ const UserEditPage: React.FC = () => {
   const currentLoggedInUserId = localStorage.getItem('userId');
   const isCurrentUserAdmin = currentUserRole === 'ROLE_ADMIN';
 
-  // Vérifie si l'utilisateur connecté est autorisé à voir cette page
   const isAuthorized = isCurrentUserAdmin || (currentLoggedInUserId === userId);
 
   // Effet pour charger les données de l'utilisateur au montage du composant ou si l'ID change
@@ -70,7 +64,7 @@ const UserEditPage: React.FC = () => {
         return;
       }
 
-      // Si l'utilisateur n'est pas autorisé, ne tente pas de charger les données
+  
       if (!isAuthorized) {
         setLoading(false);
         return;
@@ -86,7 +80,7 @@ const UserEditPage: React.FC = () => {
           return;
         }
 
-        // Appel à l'API pour récupérer les détails de l'utilisateur
+        
         const response = await fetch(`http://localhost:8080/api/users/${userId}`, {
           method: 'GET',
           headers: {
@@ -101,7 +95,7 @@ const UserEditPage: React.FC = () => {
           try {
             const errorJson = JSON.parse(errorText);
             parsedError = errorJson.message || errorJson.error || parsedError;
-          } catch (e) {
+          } catch {
             // Fallback to raw text if JSON parsing fails
           }
           throw new Error(parsedError);
@@ -111,19 +105,23 @@ const UserEditPage: React.FC = () => {
         setUser(data);
         setCurrentUsername(data.userName); // Pré-remplit le champ username
         setCurrentEmail(data.email);       // Pré-remplit le champ email
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error fetching user data:", err);
-        setError(`Failed to load user data: ${err.message}.`);
+        if (err instanceof Error) {
+          setError(`Failed to load user data: ${err.message}.`);
+        } else {
+          setError("Failed to load user data: An unknown error occurred.");
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchUserData();
-  }, [userId, isAuthorized]); // S'exécute quand l'ID de l'utilisateur dans l'URL change ou l'autorisation change
-
-  // Fonction pour gérer la soumission du formulaire de modification de profil
-  const handleSubmitProfile = async (event: React.FormEvent) => { // RENOMMÉ
+  }, [userId, isAuthorized]); 
+ 
+  
+  const handleSubmitProfile = async (event: React.FormEvent) => { 
     event.preventDefault();
 
     if (!userId) {
@@ -141,15 +139,15 @@ const UserEditPage: React.FC = () => {
         throw new Error("Authentication token not found. Please log in.");
       }
 
-      // Crée l'objet UpdateUserDto avec les champs modifiés
+    
       const updateUserDto: UpdateUserDto = {
         userName: currentUsername,
         email: currentEmail,
-        // Ajoutez d'autres champs si vous les modifiez
+       
       };
 
       const response = await fetch(`http://localhost:8080/api/users/${userId}`, {
-        method: 'PATCH', // Utilisez PATCH pour la mise à jour partielle
+        method: 'PATCH', 
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
@@ -163,7 +161,7 @@ const UserEditPage: React.FC = () => {
         try {
           const errorJson = JSON.parse(errorText);
           parsedError = errorJson.message || errorJson.error || parsedError;
-        } catch (e) {
+        } catch {
           // Fallback to raw text if JSON parsing fails
         }
         throw new Error(parsedError);
@@ -172,32 +170,34 @@ const UserEditPage: React.FC = () => {
       setSuccess("Profile updated successfully!");
       console.log("Profile updated successfully!");
 
-      // Mise à jour locale du nom d'utilisateur si c'est le profil de l'utilisateur connecté
+      
       if (currentLoggedInUserId === userId && currentUsername) {
         localStorage.setItem('userName', currentUsername);
-        // Si l'e-mail est également modifiable et que vous le stockez, mettez-le à jour aussi
+        
       }
 
-      // Redirige vers la page de gestion des utilisateurs (pour les admins) ou reste sur la page (pour les utilisateurs normaux)
-      // Ou navigue vers une page de confirmation
+      
       setTimeout(() => {
         if (isCurrentUserAdmin) {
           navigate('/admin/users');
         } else {
-          // Pour un utilisateur normal, on peut simplement effacer le message de succès
           setSuccess(null);
         }
       }, 1500);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error updating user profile:", err);
-      setError(err.message || "An unexpected error occurred during profile update.");
+      if (err instanceof Error) {
+        setError(err.message || "An unexpected error occurred during profile update.");
+      } else {
+        setError("An unexpected error occurred during profile update.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // NOUVEAU: Fonction pour gérer la soumission du formulaire de modification de mot de passe
+  
   const handleSubmitPassword = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -210,7 +210,7 @@ const UserEditPage: React.FC = () => {
     setPasswordUpdateError(null);
     setPasswordUpdateSuccess(null);
 
-    // Validation côté client pour le mot de passe
+   
     if (!newPassword || !confirmNewPassword) {
       setPasswordUpdateError("Please fill in both new password fields.");
       setPasswordUpdateLoading(false);
@@ -221,7 +221,7 @@ const UserEditPage: React.FC = () => {
       setPasswordUpdateLoading(false);
       return;
     }
-    if (newPassword.length < 6) { // Exemple de validation de longueur minimale
+    if (newPassword.length < 6) { 
       setPasswordUpdateError("New password must be at least 6 characters long.");
       setPasswordUpdateLoading(false);
       return;
@@ -252,7 +252,7 @@ const UserEditPage: React.FC = () => {
         try {
           const errorJson = JSON.parse(errorText);
           parsedError = errorJson.message || errorJson.error || parsedError;
-        } catch (e) {
+        } catch{
           // Fallback to raw text if JSON parsing fails
         }
         throw new Error(parsedError);
@@ -261,25 +261,28 @@ const UserEditPage: React.FC = () => {
       setPasswordUpdateSuccess("Password updated successfully!");
       console.log("Password updated successfully!");
 
-      // Réinitialise les champs du mot de passe après succès
+     
       setNewPassword('');
       setConfirmNewPassword('');
 
-      // Pas de redirection ici, l'utilisateur reste sur la page de profil
+      
       setTimeout(() => {
-        setPasswordUpdateSuccess(null); // Efface le message de succès après un délai
+        setPasswordUpdateSuccess(null); 
       }, 2000);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error updating password:", err);
-      setPasswordUpdateError(err.message || "An unexpected error occurred during password update.");
+      if (err instanceof Error) {
+        setPasswordUpdateError(err.message || "An unexpected error occurred during password update.");
+      } else {
+        setPasswordUpdateError("An unexpected error occurred during password update.");
+      }
     } finally {
       setPasswordUpdateLoading(false);
     }
   };
 
 
-  // Redirection si l'utilisateur n'est pas autorisé
   if (!isAuthorized) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 64px)', p: 3 }}>
@@ -288,7 +291,7 @@ const UserEditPage: React.FC = () => {
     );
   }
 
-  if (loading && !user) { // Affiche un loader si les données initiales sont en cours de chargement
+  if (loading && !user) { 
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 64px)' }}>
         <CircularProgress sx={{ color: 'var(--primary-dark)' }} />
@@ -297,7 +300,7 @@ const UserEditPage: React.FC = () => {
     );
   }
 
-  if (error && !user) { // Affiche une erreur si le chargement initial a échoué
+  if (error && !user) { 
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 64px)', p: 3 }}>
         <Alert severity="error">{error}</Alert>
@@ -305,7 +308,7 @@ const UserEditPage: React.FC = () => {
     );
   }
 
-  if (!user) { // Cas où l'utilisateur n'est pas trouvé ou ID manquant après chargement
+  if (!user) { 
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 64px)', p: 3 }}>
         <Alert severity="warning">User not found or invalid ID.</Alert>
@@ -326,7 +329,7 @@ const UserEditPage: React.FC = () => {
         backgroundColor: 'var(--background-light)',
       }}
     >
-      {/* Formulaire de modification de profil */}
+      
       <Box
         component="form"
         onSubmit={handleSubmitProfile} // RENOMMÉ
@@ -351,7 +354,7 @@ const UserEditPage: React.FC = () => {
           Update the user's general information.
         </Typography>
 
-        {/* Champ Username */}
+        
         <TextField
           label="Username"
           variant="outlined"
@@ -361,7 +364,7 @@ const UserEditPage: React.FC = () => {
           sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px', backgroundColor: 'var(--background-light)' } }}
           disabled={loading}
         />
-        {/* Champ Email (souvent non modifiable ou avec une logique de vérification plus complexe) */}
+        
         <TextField
           label="Email"
           type="email"
@@ -372,13 +375,13 @@ const UserEditPage: React.FC = () => {
           sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px', backgroundColor: 'var(--background-light)' } }}
           disabled={loading}
         />
-        {/* Affichage du rôle (non modifiable directement ici, car géré par toggle-role) */}
+
         <TextField
           label="Role"
           variant="outlined"
           fullWidth
           value={user.role}
-          disabled // Le rôle n'est pas modifiable directement via ce formulaire
+          disabled 
           sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px', backgroundColor: 'var(--background-light)' } }}
         />
 
@@ -406,7 +409,7 @@ const UserEditPage: React.FC = () => {
         >
           Save Profile Changes
         </Button>
-        {isCurrentUserAdmin && ( // Bouton "Cancel" pour les admins pour retourner à la liste
+        {isCurrentUserAdmin && ( 
           <Button
             fullWidth
             onClick={() => navigate('/admin/users')}
@@ -426,7 +429,6 @@ const UserEditPage: React.FC = () => {
 
       <Divider sx={{ width: '100%', maxWidth: 500, my: 3 }} /> {/* Séparateur */}
 
-      {/* NOUVEAU: Formulaire de modification de mot de passe */}
       <Box
         component="form"
         onSubmit={handleSubmitPassword}

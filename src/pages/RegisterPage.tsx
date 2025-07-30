@@ -1,11 +1,8 @@
-// src/pages/RegisterPage.tsx
 import { useState } from 'react';
 import { Typography, TextField, Button, Box, CircularProgress, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
-// Définition des props que le composant RegisterPage peut recevoir
 interface RegisterPageProps {
-  // Nouvelle prop pour gérer le succès de l'enregistrement et la connexion automatique
   onRegistrationSuccessAndLogin: (token: string, userId: number, userName?: string) => void;
 }
 
@@ -84,12 +81,16 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegistrationSuccessAndLog
 
       console.log("RegisterPage: Calling onRegistrationSuccessAndLogin..."); // Log de débogage
 
-      // APPEL IMMÉDIAT: Le setTimeout a été retiré ici pour une connexion automatique fluide
+      
       onRegistrationSuccessAndLogin(tokenResponse, userId, userName);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Registration error:", err);
-      setError(err.message || "An unexpected error occurred during registration.");
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unexpected error occurred during registration.");
+      }
     } finally {
       setLoading(false);
     }

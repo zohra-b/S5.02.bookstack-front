@@ -75,7 +75,6 @@ const UserBookDetailPage: React.FC = () => {
       }
       const data: UserBookDto = await getUserBookById(parsedUserBookId);
 
-      // Basic authorization check: Ensure the logged-in user owns this UserBook
       if (currentLoggedInUserId && data.user.userId.toString() !== currentLoggedInUserId) {
         setError("Access Denied. You are not authorized to view this user book entry.");
         setLoading(false);
@@ -83,14 +82,17 @@ const UserBookDetailPage: React.FC = () => {
       }
 
       setUserBook(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching user book details:", err);
       if (err instanceof AuthError) {
         setError(err.message + " Please log in.");
-        // Optionally redirect to login page
-        // navigate('/login');
+        
       } else {
-        setError(`Failed to load user book details: ${err.message}.`);
+        setError(
+          err instanceof Error
+            ? `Failed to load user book details: ${err.message}.`
+            : "Failed to load user book details: An unknown error occurred."
+        );
       }
     } finally {
       setLoading(false);
@@ -129,15 +131,19 @@ const UserBookDetailPage: React.FC = () => {
 
     try {
       const updatedUserBook = await updateUserBook(parseInt(userBookId), updatePayload);
-      setUserBook(updatedUserBook); // Update local state with fresh data
+      setUserBook(updatedUserBook); 
       setIsEditModalOpen(false);
       alert('Your book entry has been updated successfully!');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error updating user book:", err);
       if (err instanceof AuthError) {
         setSaveError(err.message + " Please log in again.");
       } else {
-        setSaveError(`Failed to update book entry: ${err.message}`);
+        setSaveError(
+          err instanceof Error
+            ? `Failed to update book entry: ${err.message}`
+            : "Failed to update book entry: An unknown error occurred."
+        );
       }
     } finally {
       setIsSaving(false);
@@ -153,13 +159,15 @@ const UserBookDetailPage: React.FC = () => {
       try {
         await deleteUserBook(parseInt(userBookId));
         alert(`"${userBook.book.title}" has been successfully removed from your list.`);
-        navigate(`/my-books/${currentLoggedInUserId}`); // Redirect to My Books page after deletion
-      } catch (err: any) {
+        navigate(`/my-books/${currentLoggedInUserId}`); 
+      } catch (err: unknown) {
         console.error("Error deleting user book:", err);
         if (err instanceof AuthError) {
           setError(err.message + " Please log in again.");
-        } else {
+        } else if (err instanceof Error) {
           setError(`Failed to remove book from your list: ${err.message}`);
+        } else {
+          setError("Failed to remove book from your list: An unknown error occurred.");
         }
       } finally {
         setLoading(false);

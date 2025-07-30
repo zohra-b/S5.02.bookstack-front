@@ -23,8 +23,8 @@ import {
 } from '@mui/material';
 
 // Import types from dedicated files
-import type { AuthorDto, CreateAuthorDto } from '../types/author';
-import type { GenreDto, CreateGenreDto } from '../types/genre';
+import type { AuthorDto} from '../types/author';
+import type { GenreDto} from '../types/genre';
 import type { CreateBookDto } from '../types/book';
 
 // Import service functions
@@ -59,7 +59,7 @@ const AddBookPage: React.FC = () => {
 
   // States for main form request handling
   const [loading, setLoading] = useState(false);
-  const [dataLoading, setDataLoading] = useState(true);
+  const [dataLoading, setDataLoading ] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dataError, setDataError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -221,12 +221,12 @@ const AddBookPage: React.FC = () => {
     // Construct the bookData object
     const bookData: CreateBookDto = {
       title,
-      isbn: isbn === '' ? null : isbn,
+      isbn: isbn === '' ? undefined : isbn,
       authorIds: authorIdsToSend,
-      description: description === '' ? null : description, 
-      publicationYear: publicationYear === '' ? null : Number(publicationYear), 
-      language: language === '' ? null : language,
-      imageUrl: imageUrl === '' ? null : imageUrl,
+      description: description === '' ? undefined : description, 
+      publicationYear: publicationYear === '' ? undefined : Number(publicationYear), 
+      language: language === '' ? undefined : language,
+      imageUrl: imageUrl === '' ? undefined : imageUrl,
       genreIds: selectedGenreIds, 
     };
 
@@ -409,7 +409,6 @@ const AddBookPage: React.FC = () => {
             renderTags={(value, getTagProps) =>
               value.map((option: AuthorDto, index: number) => (
                 <Chip
-                  key={option.authorId}
                   label={`${option.firstName} ${option.lastName}`}
                   {...getTagProps({ index })}
                 />

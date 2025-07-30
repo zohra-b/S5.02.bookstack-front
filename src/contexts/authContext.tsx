@@ -1,8 +1,8 @@
+
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// Définir l'interface pour le contexte d'authentification
 export interface AuthContextType {
   isAuthenticated: boolean;
   userName: string | null;
@@ -109,11 +109,4 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
 export { AuthContext, AuthProvider};
 
-// // Hook personnalisé pour utiliser le contexte d'authentification
-// export const useAuth = () => {
-//   const context = useContext(AuthContext);
-//   if (context === undefined) {
-//     throw new Error('useAuth must be used within an AuthProvider');
-//   }
-//   return context;
-// };
+

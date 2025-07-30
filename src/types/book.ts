@@ -10,7 +10,7 @@ export interface BookDto {
   genres: { id: number; name: string; }[]; // Full Genre objects
 }
 
-// DTO for creating a book (from AddBookPage)
+
 export interface CreateBookDto {
   title: string;
   description?: string;

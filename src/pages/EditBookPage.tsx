@@ -1,4 +1,3 @@
-// src/pages/EditBookPage.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -9,11 +8,7 @@ import {
   CircularProgress,
   Alert,
   FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Chip,
-  OutlinedInput,
   Dialog,
   DialogActions,
   DialogContent,
@@ -27,12 +22,11 @@ import {
   createFilterOptions
 } from '@mui/material';
 
-// Import types from dedicated files
-import type { AuthorDto, CreateAuthorDto } from '../types/author';
-import type { GenreDto, CreateGenreDto } from '../types/genre';
-import type { BookDto, UpdateBookDto } from '../types/book'; // Import BookDto and UpdateBookDto
+import type { AuthorDto } from '../types/author';
+import type { GenreDto } from '../types/genre';
+import type { BookDto, UpdateBookDto } from '../types/book'; 
 
-// Import service functions
+
 import { getBookById, updateBook } from '../api/bookService'; // Get specific book and update
 import { getAllAuthors, createAuthor } from '../api/authorService';
 import { getAllGenres, createGenre } from '../api/genreService';
@@ -106,10 +100,7 @@ const EditBookPage: React.FC = () => {
       setDataLoading(true);
       setDataError(null);
 
-      console.log("EditBookPage: Raw bookId from useParams:", bookId); // DEBUG LOG 1
-
-      // IMPORTANT: Check if bookId is available before proceeding
-      if (!bookId) {
+        if (!bookId) {
         setDataError("Book ID is missing from the URL. Please navigate from a valid book link.");
         setDataLoading(false);
         return; // Exit early if no bookId
@@ -142,12 +133,16 @@ const EditBookPage: React.FC = () => {
         const genresData = await getAllGenres();
         setAvailableGenres(genresData);
 
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error fetching book or form data:", err);
         if (err instanceof AuthError) {
           handleLogout(err.message);
         } else {
-          setDataError(`Failed to load book or necessary data: ${err.message}. Ensure backend is running.`);
+          setDataError(
+            `Failed to load book or necessary data: ${
+              err instanceof Error ? err.message : String(err)
+            }. Ensure backend is running.`
+          );
         }
       } finally {
         setDataLoading(false);
@@ -183,12 +178,16 @@ const EditBookPage: React.FC = () => {
       setOpenNewAuthorDialog(false);
       setNewAuthorError(null);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error creating new author:", err);
       if (err instanceof AuthError) {
         handleLogout(err.message);
       } else {
-        setNewAuthorError(err.message || "An unexpected error occurred while creating the author.");
+        setNewAuthorError(
+          err instanceof Error
+            ? err.message
+            : "An unexpected error occurred while creating the author."
+        );
       }
     } finally {
       setNewAuthorLoading(false);
@@ -214,12 +213,16 @@ const EditBookPage: React.FC = () => {
       setOpenNewGenreDialog(false);
       setNewGenreError(null);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error creating new genre:", err);
       if (err instanceof AuthError) {
         handleLogout(err.message);
       } else {
-        setNewGenreError(err.message || "An unexpected error occurred while creating the genre.");
+        setNewGenreError(
+          err instanceof Error
+            ? err.message
+            : "An unexpected error occurred while creating the genre."
+        );
       }
     } finally {
       setNewGenreLoading(false);
@@ -280,7 +283,7 @@ const EditBookPage: React.FC = () => {
 
     const bookData: UpdateBookDto = { 
       title,
-      isbn: isbn === '' ? null : isbn, 
+      isbn: isbn === '' ? undefined : isbn, 
       authorIds: authorIdsToSend,
       description: description === '' ? null : description, 
       publicationYear: publicationYear === '' ? null : Number(publicationYear), 
@@ -299,12 +302,16 @@ const EditBookPage: React.FC = () => {
         navigate(`/books/${bookId}`); // Redirect to the book's detail page
       }, 2000);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error updating book:", err);
       if (err instanceof AuthError) {
         handleLogout(err.message);
       } else {
-        setError(err.message || "An unexpected error occurred while updating the book.");
+        setError(
+          err instanceof Error
+            ? err.message
+            : "An unexpected error occurred while updating the book."
+        );
       }
     } finally {
       setLoading(false);
@@ -460,7 +467,6 @@ const EditBookPage: React.FC = () => {
             renderTags={(value, getTagProps) =>
               value.map((option: AuthorDto, index: number) => (
                 <Chip
-                  key={option.authorId}
                   label={`${option.firstName} ${option.lastName}`}
                   {...getTagProps({ index })}
                 />

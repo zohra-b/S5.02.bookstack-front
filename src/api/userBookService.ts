@@ -30,14 +30,14 @@ const handleApiResponse = async (response: Response): Promise<unknown> => {
     try {
       const errorJson = JSON.parse(errorBody);
       errorMessage = errorJson.message || errorJson.error || errorMessage;
-    } catch (e) {
+    } catch {
       // Fallback to raw text if JSON parsing fails
     }
     throw new Error(errorMessage);
   }
   try {
     return await response.json();
-  } catch (e) {
+  } catch {
     return null; 
   }
 };
@@ -78,7 +78,7 @@ export const checkIfBookInUserList = async (userId: number, bookId: number): Pro
       try {
         const errorJson = JSON.parse(errorBody);
         errorMessage = errorJson.message || errorJson.error || errorMessage;
-      } catch (e) {
+      } catch {
         // Fallback to raw text if JSON parsing fails
       }
       throw new Error(errorMessage);

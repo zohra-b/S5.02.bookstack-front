@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardMedia, Typography, Box, Chip, Rating } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import type { UserBookDto } from '../types/userBook'; // Import the UserBookDto type
+import type { UserBookDto } from '../types/userBook'; 
 
 // Interface for UserBookCard props expects a 'userBook' object of type UserBookDto
 interface UserBookCardProps {
@@ -11,16 +11,15 @@ interface UserBookCardProps {
 const UserBookCard: React.FC<UserBookCardProps> = ({ userBook }) => {
   // Destructure properties from the 'userBook' object
   const { id, book, status, rating, comment } = userBook;
-  const { bookId, title, author, imageUrl } = book; // Destructure nested book properties
+  const { title, author, imageUrl } = book; // Destructure nested book properties
 
   const navigate = useNavigate();
 
   const handleCardClick = () => {
-    // Redirect to the UserBookDetailPage using the userBook's ID (not the bookId)
-    navigate(`/my-books/entry/${id}`); // Navigate to the specific user book entry page
+    navigate(`/my-books/entry/${id}`); 
   };
 
-  // Define placeholder text for display within the custom div
+  
   const maxTitleLength = 40; 
   const maxAuthorLength = 30; 
 
