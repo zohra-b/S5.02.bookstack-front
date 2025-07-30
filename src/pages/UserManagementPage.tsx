@@ -149,6 +149,7 @@ const handleLogout = useCallback((message?: string) => {
 
       let response;
       if (actionType === 'toggleRole') {
+        console.log("Données utilisateur envoyées pour toggleRole :", selectedUserForAction);
         response = await fetch(`http://localhost:8080/api/users/${selectedUserForAction.userId}/toggle-role`, {
           method: 'POST',
           headers: {
@@ -191,7 +192,7 @@ const handleLogout = useCallback((message?: string) => {
       console.error(`Error during ${actionType} action:`, err);
       setActionError(err.message || `An error occurred during ${actionType} action.`);
     } finally {
-      setLoading(false); // Désactive le chargement
+      setLoading(false); 
     }
   };
 
