@@ -1,4 +1,3 @@
-// src/pages/UserManagementPage.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Typography,
@@ -25,9 +24,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import SwapCallsIcon from '@mui/icons-material/SwapCalls';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom';
-//import { useAuth } from '../hooks/useAuth'; // NOUVEAU: Importation du hook useAuth
 
-// Interface pour les données utilisateur (à adapter selon votre UserDto du backend)
 interface UserData {
   userId: number;
   userName: string;
@@ -37,7 +34,6 @@ interface UserData {
 
 const UserManagementPage: React.FC = () => {
   const navigate = useNavigate();
-  //const { handleLogout } = useAuth(); // NOUVEAU: Utilisation du hook useAuth
 
 
   const [users, setUsers] = useState<UserData[]>([]);
@@ -114,10 +110,10 @@ const handleLogout = useCallback((message?: string) => {
     } finally {
       setLoading(false);
     }
-  }, [filterRole, handleLogout]); // MODIFIÉ: Ajout de handleLogout dans les dépendances
+  }, [filterRole, handleLogout]); 
 
   useEffect(() => {
-    if (isCurrentUserAdmin) { // Seuls les admins peuvent charger cette page
+    if (isCurrentUserAdmin) { 
       fetchUsers();
     } else {
       setLoading(false);
@@ -154,6 +150,7 @@ const handleLogout = useCallback((message?: string) => {
 
       let response;
       if (actionType === 'toggleRole') {
+        console.log("Données utilisateur envoyées pour toggleRole :", selectedUserForAction);
         response = await fetch(`http://localhost:8080/api/users/${selectedUserForAction.userId}/toggle-role`, {
           method: 'POST',
           headers: {
@@ -174,7 +171,7 @@ const handleLogout = useCallback((message?: string) => {
 
       if (response.status === 401) { 
         handleLogout("Your session has expired. Please login.");
-        return; // Arrête l'exécution de la fonction ici
+        return; 
       }
 
       if (!response.ok) {
@@ -196,14 +193,13 @@ const handleLogout = useCallback((message?: string) => {
       console.error(`Error during ${actionType} action:`, err);
       setActionError(err.message || `An error occurred during ${actionType} action.`);
     } finally {
-      setLoading(false); // Désactive le chargement
+      setLoading(false); 
     }
   };
 
-  //Gérer la modification  navigue vers la page users/edit
+  
   const handleEditUser = (user: UserData) => {
     console.log("Navigating to edit user:", user.userId);
-    // Navigue vers une route d'édition spécifique à l'utilisateur
     navigate(`/admin/users/edit/${user.userId}`);
   };
 

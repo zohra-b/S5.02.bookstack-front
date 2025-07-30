@@ -1,4 +1,3 @@
-// src/pages/UserEditPage.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -8,10 +7,10 @@ import {
   Box,
   CircularProgress,
   Alert,
-  Divider, // NOUVEAU: Pour séparer les sections
+  Divider, 
 } from '@mui/material';
 
-// Interface pour les données utilisateur (doit correspondre à votre UserDto du backend)
+
 interface UserData {
   userId: number;
   userName: string;
