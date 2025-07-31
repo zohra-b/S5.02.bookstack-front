@@ -47,7 +47,6 @@ const BookDetailPage: React.FC = () => {
   const [book, setBook] = useState<FullBookData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  // NEW: State to manage placeholder display on image load error
   const [showImagePlaceholder, setShowImagePlaceholder] = useState<boolean>(false);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -238,12 +237,12 @@ const BookDetailPage: React.FC = () => {
         position: 'relative', // For positioning text in the center
       }}
     >
-      {/* MODIFIÉ: Le texte est directement dans le conteneur principal avec la couleur verte */}
+     
       <Typography variant="h6" sx={{ color: 'var(--primary-dark)', fontSize: '1.2rem', fontWeight: 'bold' }}>
         {displayTitle}
       </Typography>
       {book.author && book.author.trim() !== '' && (
-        <Typography variant="body2" sx={{ color: 'var(--primary-dark)', fontSize: '0.9rem', mt: 0.5 }}> {/* MODIFIÉ: Couleur du texte en vert */}
+        <Typography variant="body2" sx={{ color: 'var(--primary-dark)', fontSize: '0.9rem', mt: 0.5 }}> 
           by {displayAuthor}
         </Typography>
       )}

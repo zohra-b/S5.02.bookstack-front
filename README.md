@@ -31,7 +31,7 @@
 - **UI Library**: Material UI (MUI)
 - **Routing**: React Router v7
 - **Backend**: Spring Boot REST API (with Swagger)
-- **HTTP**: Axios (via `api/*.ts` services)
+
 - **Type definitions**: Located in `types/`
 
 ---
