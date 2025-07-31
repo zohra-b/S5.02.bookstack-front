@@ -31,7 +31,7 @@
 - **UI Library**: Material UI (MUI)
 - **Routing**: React Router v7
 - **Backend**: Spring Boot REST API (with Swagger)
-- **HTTP**: Axios (via `api/*.ts` services)
+- **HTTP**: Servicios personalizados (via `api/*.ts` services)
 - **Type definitions**: Located in `types/`
 
 ---
@@ -40,7 +40,7 @@
 
 ```
 src/
-├── api/ # API services (Axios)
+├── api/ # API services
 ├── assets/ # Images, icons, etc.
 ├── components/ # Reusable UI components
 ├── contexts/ # AuthContext
