@@ -31,7 +31,7 @@
 - **UI Library**: Material UI (MUI)
 - **Routing**: React Router v7
 - **Backend**: Spring Boot REST API (with Swagger)
-
+- **HTTP**: Servicios personalizados (via `api/*.ts` services)
 - **Type definitions**: Located in `types/`
 
 ---
@@ -40,7 +40,7 @@
 
 ```
 src/
-├── api/ # API services (Axios)
+├── api/ # API services
 ├── assets/ # Images, icons, etc.
 ├── components/ # Reusable UI components
 ├── contexts/ # AuthContext
@@ -98,39 +98,32 @@ Here are a few visual previews of the app in action:
 ```bash
 git clone https://github.com/your-username/bookstack-frontend.git
 cd bookstack-frontend
+```
 
-## 📦 Installation
-
-### Prerequisites
-
-- Node.js (v18+ recommended)
-- npm or yarn
-
-### Steps
-
-1. **Clone the repository**
-
-```bash
-git clone https://github.com/your-username/bookstack-frontend.git
-cd bookstack-frontend
 
 
 2. **Install dependencies**
 
+```bash
 npm install
 # or
 yarn install
+```
 
 3. **Configure the backend API base URL**
+
 Make sure the API endpoints in the api/*.ts service files point to your backend, e.g.:
+```bash
 const API_BASE_URL = 'http://localhost:8080/api';
+```
 
 
 4. **Start the development server**
+```bash
 npm run dev
 # or
 yarn dev
-
+```
 
 ## 🔐 Authentication
 Login modal handled in LoginModal.tsx

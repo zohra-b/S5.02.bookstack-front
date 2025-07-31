@@ -8,7 +8,8 @@ import LoginModal from './components/LoginModal';
 // Importation du composant de routes centralisé
 import AppRoutes from './routes/AppRoutes';
 
-import { AuthProvider, useAuth } from './contexts/authContext';
+import { AuthProvider } from './contexts/authContext';
+import useAuth from './contexts/useAuth'; 
 
 function AppContent() {
   const { isAuthenticated, userName, userRole, currentLoggedInUserId, login, logout } = useAuth();

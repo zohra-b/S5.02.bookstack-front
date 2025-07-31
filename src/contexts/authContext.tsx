@@ -1,9 +1,9 @@
-import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
+
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// Définir l'interface pour le contexte d'authentification
-interface AuthContextType {
+export interface AuthContextType {
   isAuthenticated: boolean;
   userName: string | null;
   userRole: string | null;
@@ -21,10 +21,9 @@ interface AuthProviderProps {
 }
 
 // Composant fournisseur d'authentification
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const navigate = useNavigate();
 
-  // MODIFIÉ: Initialisation paresseuse de isAuthenticated directement depuis localStorage
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     return localStorage.getItem('jwtToken') !== null;
   });
@@ -40,8 +39,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const storedUserRole = localStorage.getItem('userRole');
     const storedUserId = localStorage.getItem('userId');
 
-    // Mettre à jour les autres états si le token est présent (déjà vérifié par isAuthenticated)
-    if (isAuthenticated) { // Utilise l'état isAuthenticated déjà initialisé
+    
+    if (isAuthenticated) { 
       setUserName(storedUsername);
       setUserRole(storedUserRole);
       setCurrentLoggedInUserId(storedUserId);
@@ -54,7 +53,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUserName(fetchedUsername);
       localStorage.setItem('userName', fetchedUsername);
     } else {
-      const userEmail = localStorage.getItem('userEmail'); // Assurez-vous que userEmail est stocké si nécessaire
+      const userEmail = localStorage.getItem('userEmail'); 
       setUserName(userEmail || `User ${userId}`);
       localStorage.setItem('userName', userEmail || `User ${userId}`);
     }
@@ -70,8 +69,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.setItem('userId', userId.toString());
     setCurrentLoggedInUserId(userId.toString());
 
-    setIsAuthenticated(true); // Met à jour l'état isAuthenticated
-    // Pas de navigation ici, le composant appelant gérera la navigation après le login
+    setIsAuthenticated(true); 
   }, []);
 
   // Fonction de déconnexion
@@ -80,16 +78,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('userId');
     localStorage.removeItem('userName');
     localStorage.removeItem('userRole');
-    localStorage.removeItem('userEmail'); // Assurez-vous que userEmail est également nettoyé
-    setIsAuthenticated(false); // Met à jour l'état isAuthenticated
+    localStorage.removeItem('userEmail'); 
+    setIsAuthenticated(false); 
     setUserName(null);
     setUserRole(null);
     setCurrentLoggedInUserId(null);
     console.log("User logged out.");
     if (message) {
-      alert(message); // Utilisez un composant de message personnalisé au lieu d'alert() si possible
+      alert(message); //A ajouter : message de confirmation de déconnexion
     }
-    navigate('/'); // Naviguer vers la page d'accueil après déconnexion
+    navigate('/'); 
   }, [navigate]);
 
   // Valeurs fournies par le contexte
@@ -109,11 +107,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
 };
 
-// Hook personnalisé pour utiliser le contexte d'authentification
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export { AuthContext, AuthProvider};
+
+
