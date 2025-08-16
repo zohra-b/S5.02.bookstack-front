@@ -1,6 +1,5 @@
-// src/pages/BookDetailPage.tsx
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useParams, useNavigate } from 'react-router-dom'; 
 import {
   Box,
   Typography,
@@ -25,7 +24,7 @@ import {
 } from '@mui/material';
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
 import type { AddUserBookDto } from '../types/userBook';
-import { addUserBook, checkIfBookInUserList } from '../api/userBookService'; // Revert to original imports
+import { addUserBook, checkIfBookInUserList } from '../api/userBookService'; 
 
 // Re-introducing FullBookData interface
 interface FullBookData {
@@ -251,7 +250,7 @@ const BookDetailPage: React.FC = () => {
 
   return (
     <Box sx={{ maxWidth: 900, margin: '20px auto', padding: '20px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-      <Card sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, boxShadow: 'none' }}>
+      <Card sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' },alignItems: { md: 'flex-start' }, boxShadow: 'none' }}>
         {/* Conditional rendering of CardMedia or the placeholder */}
         {book.imageUrl && !showImagePlaceholder ? (
           <CardMedia
@@ -273,7 +272,7 @@ const BookDetailPage: React.FC = () => {
           // Render the custom placeholder if imageUrl is null/empty OR if image loading failed
           renderPlaceholder()
         )}
-        <CardContent sx={{ flex: '1 0 auto', p: { xs: 2, md: 3 } }}>
+        <CardContent sx={{ flex: 1, p: { xs: 2, md: 3 }}}>
           <Typography variant="h4" component="h1" gutterBottom sx={{ color: 'var(--primary-dark)', fontWeight: 600 }}>
             {book.title}
           </Typography>
@@ -291,7 +290,11 @@ const BookDetailPage: React.FC = () => {
           <Typography variant="body1" color="text.secondary" paragraph>
             **ISBN:** {book.isbn}
           </Typography>
-          <Typography variant="body1" sx={{ mt: 3, lineHeight: 1.8 }}>
+          <Typography variant="body1" sx={{ 
+            mt: 3, lineHeight: 1.8 , 
+            whiteSpace: 'pre-line', 
+            overflowWrap: 'break-word',
+             wordBreak: 'break-word' }}>
             {book.description}
           </Typography>
 
