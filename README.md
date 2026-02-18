@@ -127,21 +127,32 @@ yarn dev
 
 ## 🔐 Authentication
 Login modal handled in LoginModal.tsx
+
 Role-based access (user/admin)
+
 JWT expected from the backend (you may need to implement token handling with Authorization headers)
+
 
 ## 📌 Potential Improvements
 
 Filter books by users rating
+
 Export personal list
+
 Dark mode with MUI's theming
+
 Unit testing with Jest + React Testing Library
+
 
 ## 🤝 Contributing
 Fork the project
+
 Create your feature branch (git checkout -b feature/AmazingFeature)
+
 Commit your changes (git commit -m 'Add some feature')
+
 Push to the branch (git push origin feature/AmazingFeature)
+
 Open a Pull Request
 
 ## 🔗 Recommended Frontend
